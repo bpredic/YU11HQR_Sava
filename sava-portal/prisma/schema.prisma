@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+}
+
+model Activator {
+  id        Int       @id @default(autoincrement())
+  callsign  String    @unique
+  email     String    @unique
+  password  String
+  createdAt DateTime  @default(now())
+  logFiles  LogFile[]
+}
+
+model LogFile {
+  id           Int        @id @default(autoincrement())
+  activatorId  Int
+  activator    Activator  @relation(fields: [activatorId], references: [id], onDelete: Cascade)
+  filename     String
+  fileType     String     // "cabrillo" | "adif"
+  uploadedAt   DateTime   @default(now())
+  qsoCount     Int        @default(0)
+  firstQsoAt   DateTime?
+  lastQsoAt    DateTime?
+  qsos         Qso[]
+}
+
+model Qso {
+  id              Int      @id @default(autoincrement())
+  logFileId       Int
+  logFile         LogFile  @relation(fields: [logFileId], references: [id], onDelete: Cascade)
+  activatorCall   String
+  hunterCall      String
+  frequency       Int      // in kHz
+  band            String
+  mode            String
+  datetime        DateTime
+  sentRst         String
+  rcvdRst         String
+  sentExch        String?
+  rcvdExch        String?
+  isDuplicate     Boolean  @default(false)
+  duplicateOfId   Int?
+
+  @@index([hunterCall])
+  @@index([activatorCall])
+  @@index([logFileId])
+}

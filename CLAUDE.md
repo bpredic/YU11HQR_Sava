@@ -4,105 +4,90 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-YU1HQR_Sava is a web portal for managing amateur radio (ham radio) WWA style event. The event is a global HAM scavanget hunt with activators and hunters. Activators require authentication on this portal and hunters do not. Activators are a predefined list of callsigns that hunters hunt on radio and should create QSOs with. Activators upload log files containing QSOs. The system processes Cabrillo and ADIF log files uploaded by activators. Hunters can freely enter their callsign and see the list of their confirmed QSOs and if fulfill conditions can download an award. The award is a predefined PDF file where the system should substitute generic callsign with hunter's callsign.
+YU1HQR_Sava is a web portal for the **Sava River Days 2026** amateur radio (HAM) WWA-style contest. Activators are pre-registered stations that hunters contact on air. Activators upload log files; hunters look up their callsign to see confirmed QSOs and download a diploma.
+
+The web app lives in the `sava-portal/` subdirectory.
+
+## Build and Development Commands
+
+Run from `sava-portal/`:
+
+```bash
+npm run dev          # dev server
+npm run build        # production build
+npm run type-check   # TypeScript check
+npm run lint         # ESLint
+npm run seed         # seed admin user (admin / admin123)
+npx prisma migrate dev --name <name>   # create new migration
+npx prisma generate                    # regenerate Prisma client
+```
+
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router, Turbopack)
+- **Language**: TypeScript (strict mode)
+- **Styling**: Tailwind CSS v4 + shadcn/ui (based on `@base-ui/react`, **not** Radix UI)
+- **Database**: SQLite via Prisma 7 + `@prisma/adapter-better-sqlite3`
+- **Auth**: Custom JWT sessions using `jose` (cookies, no NextAuth)
+- **Email**: nodemailer (SMTP config in `.env`)
+- **PDF**: pdf-lib (diploma generation)
+
+## Architecture
+
+### Key File Locations
+
+- `src/app/` – Next.js App Router pages and API routes
+- `src/components/` – React components (mix of server and `'use client'`)
+- `src/lib/` – Core utilities:
+  - `db.ts` – Prisma client singleton (uses `PrismaBetterSqlite3` adapter, DB at `dev.db` in project root)
+  - `auth.ts` – JWT session helpers (`createSession`, `getSession`, `deleteSession`)
+  - `scoring.ts` – Contest scoring logic, point values, diploma qualification check
+  - `email.ts` – Nodemailer welcome email
+  - `parsers/cabrillo.ts` – Cabrillo 3.0 parser
+  - `parsers/adif.ts` – ADIF parser
+- `prisma/schema.prisma` – Data models: `User`, `Activator`, `LogFile`, `Qso`
+- `prisma/seed.ts` – Seeds the admin user
+
+### Database (SQLite)
+
+DB file is at `sava-portal/dev.db` (project root, not `prisma/` folder). The `prisma.config.ts` sets `DATABASE_URL=file:./dev.db` relative to the project root.
+
+### Auth Flow
+
+Two roles: `admin` (one user in `User` table) and `activator` (callsign-based login from `Activator` table). Sessions are 8h JWT stored in an `httpOnly` cookie named `session`. All API routes call `getSession()` to verify.
+
+### Next.js 16 API Notes (breaking changes from v13/14)
+
+- `params` in pages and route handlers are **Promises**: `const { id } = await params`
+- `cookies()` and `headers()` from `next/headers` are **async**
+- Route handler context uses `RouteContext<'/path/[param]'>` helper (auto-generated, globally available)
+- GET handlers are **dynamic by default** (no static caching)
+- `@base-ui/react` Dialog does **not** support `asChild` – use `render={<Button />}` prop instead
+
+### shadcn/ui components
+
+Based on `@base-ui/react`. The `DialogTrigger` component uses `render` prop, not `asChild`:
+```tsx
+<DialogTrigger render={<Button />}>Open</DialogTrigger>
+```
+
+### Scoring Rules
+
+- Contest period: June 1–7, 2026 (UTC)
+- YT1SAVA = 6 pts, YU1HQR = 2 pts, all others = 1 pt
+- Max 1 QSO per activator + band + mode combination per hunter
+- Mandatory: at least one QSO with YT1SAVA
+- Minimum 10 points for diploma
+- Allowed modes: CW, SSB, FT8, FT4, FT2, FM (digital modes count separately)
+
+### Duplicate Detection
+
+When uploading a log file, a QSO is considered a duplicate if another QSO with the same `activatorCall + hunterCall + band + mode` exists within a ±5-minute window in the database. Duplicates are stored with `isDuplicate=true`.
 
 ## Current Status
 
-The repository contains example Cabrillo and ADIF data files in `LogFiles/`. cabrillo log files have extension .log and ADIF files have extension .adi
+The repository contains example Cabrillo and ADIF data files in `LogFiles/`. The web app in `sava-portal/` is fully built and passing `npm run build`.
 
-## Tech Stack
-- **Backend**: [Next.js 15]
-- **Frontend**: [React]
-- **Language**: [TypeScript]
-- **Styling**: [Tailwind CSS, Shadcn UI]
-- **Database/ORM**: [SQLite, Prisma]
+Default admin credentials (from seed): `admin` / `admin123` — change in `.env` before production use.
+Created activator YU1BPC bpredic@gmail.com password gqkzbUujGE
 
-## Architecture & Project Structure
-- **Framework**: Next.js 15+ (App Router)
-- **Directory Map**:
-  - `app/`: Routing and Server Components.
-  - `components/ui/`: Reusable [shadcn/ui](https://shadcn.com) components.
-  - `lib/`: Utilities, shared config, and API helpers.
-  - `hooks/`: Custom React hooks.
-  - `types/`: Global TypeScript definitions.
-  - `CabrilloFiles` : Example Cabrillo files
-
-## Coding Standards & Conventions
-- **React Patterns**: Use Server Components by default; only use `'use client'` for interactivity.
-- **State Management**: Prefer [Zustand](https://pmnd.rs) for client state and [TanStack Query](https://tanstack.com) for server state.
-- **Styling**: Use Tailwind CSS exclusively; follow a mobile-first responsive approach.
-- **TypeScript**: Strict mode is mandatory. Always define explicit return types for functions.
-- **API Routes**: Place logic in `app/api/` handlers; use Zod for input validation.
-
-## Guidelines for New Features
-- Create components in `components/` before using them in pages.
-- Handle loading states with `loading.tsx` and errors with `error.tsx`.
-- Ensure all components are accessible (a11y) and SEO-friendly.
-
-## Build and Development Commands
-- Dev server: `npm run dev`
-- Build: `npm run build`
-- Type-check: `npm run type-check`
-- Lint: `npm run lint`
-- Test: `npm run test`
-
-## Cabrillo Format Reference
-
-Cabrillo 3.0 is the standard log format used by ham radio contest organizers. Key elements:
-
-- **Header fields**: START-OF-LOG, CALLSIGN, CONTEST, CATEGORY-*, OPERATORS, NAME, ADDRESS, GRID-LOCATOR, EMAIL, CLAIMED-SCORE
-- **QSO records**: `QSO: <freq> <mode> <datetime> <sent-call> <sent-rst> <sent-exch> <rcvd-call> <rcvd-rst> <rcvd-exch>`
-- **Modes**: PH (Phone/SSB), CW (Morse), RY (Digital/RTTY)
-- **Terminator**: END-OF-LOG
-
-Example QSO line:
-```
-QSO:    3733 PH 2026-04-10 1730 YU4BPC        59   001  YU1P          59   002  TS
-```
-Fields: frequency (kHz), mode, date, time (UTC), sent callsign, sent RST, sent exchange, received callsign, received RST, received exchange (county code)
-
-## Software functionalities
-- Create a single admin user with username and pasword
-- Create a page only for admin where admin can add new activator accounts and delete them. Registering activator account requires callsign and email. Notification email containing password should be emailed to the newly created activator to his email.
-- When acttivator logs into the system he can upload his Cabrillo or ADIF log file. Create a separate page containing upload control and a list of uploaded log files. This list should show date of upload, number of QSOs and earliest and latest date and time of a QSO contained in this log file.
-- Activator should have a separate page showing all uploaded QSOs from all files he uploaded. One row should show all standard QSO information like callsign, frequency, date and time, mode and a log file from which it was uploaded from. Detect duplicate QSOs when importing and after log file import show statistics, number of new QSOs added to the database and number of duplicate QSOs that are skipped. For each duplicate QSO show all relevant information and which activator and when uploaded and in which log file.
-- Add a separate page for each of the files which lists all contacts QSLs in that file and show which ones have been confirmed by cross-referencing with other users' files
-- Store all QSO data in a local SQLite database
-- Hunters do not need to log into the portal. They have an option on the main page to enter their callsign and statistics page for that callsign is displayed.
-- Statistics page for entered callsign should list all QSOs for that callsign that exist in log files data uploaded by activators. The list should show all relevant QSO data such as date and time, frequency, mode, activator callsign, how many points that QSO earns the hunter.
-- Statistics page also shows total number of points earned by the hunter and if hunter earned more points than required for a diploma an option to download the PDF file of the diploma.
-
-## Web design guidelines
-- The theme for this HAM contest app is Sava river days
-- Create adequate graphics for headers and CSS coloring scheme
-
-## Pravila za racunanje poena
-УСЛОВИ ЗА ОСВАЈАЊЕ ДИПЛОМЕ „SAVA“
-Везе се признају у периоду од 1. до 7. јуна 2026. године
-За диплому је потребно сакупити минимум 10 бодова
-Обавезна је најмање једна потврђена веза са позивним знаком YT1SAVA
-Са сваким позивним знаком може се остварити:
-највише једна веза по опсегу (band) и по врсти рада (mode)
-Везе на различитим опсезима се рачунају као посебне
-Везе у различитим врстама рада се рачунају као посебне
-Дигиталне врсте рада (FT8, FT4, FT2) рачунају се као засебни модови
-Дупле везе:
-Везе са истим позивним знаком на истом опсегу и у истој врсти рада не доносе додатне бодове
-Слушања (SWL) се признају под истим условима као и двосмерне радио-везе
-СИСТЕМ БОДОВАЊА
-YT1SAVA, YU1HQR, YU1FI, YU1XO, YT1TU, YU4LUM, YU4URM, YU4CFA, YU4NPV, YU4RDX, YU4BCP, YU5TM, YU5DR, YT5FDE, YT5TNM, YT5WA, YT5MM, YU6DEJ, YU6DMR, YT1T
-
-YT1SAVA – 6 бодова
-YU1HQR – 2 бода
-Сви остали позивни знаци – 1 бод
-О ДАНУ РЕКЕ САВЕ
-Дан реке Саве обележава се 1. јуна у земљама слива реке Саве: Словенији, Хрватској, Босни и Херцеговини и Србији.
-
-Циљ:
-
-промоција еколошке вредности реке
-одрживо коришћење ресурса
-регионална сарадња
-унапређење квалитета вода и живота
-ДОЗВОЉЕНЕ ВРСТЕ РАДА
-CW, SSB, FT8, FT4, FT2, FM

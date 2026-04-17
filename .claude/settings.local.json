@@ -1,7 +1,25 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-turbopack --yes)",
+      "Bash(npx create-next-app@latest sava-portal --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-turbopack --yes)",
+      "Bash(npm install:*)",
+      "Bash(npx shadcn@latest init --yes --base-color slate)",
+      "Bash(npx shadcn@latest init --yes)",
+      "Bash(npx shadcn@latest init -d)",
+      "Bash(npx shadcn@latest add card table badge input label textarea select dialog alert toast form)",
+      "Bash(npx shadcn@latest add card table badge input label textarea select dialog alert sonner form)",
+      "Bash(npx shadcn@latest add separator tabs dropdown-menu navigation-menu)",
+      "Bash(npx prisma:*)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\('version',''\\)\\)\")",
+      "Bash(npm ls:*)",
+      "Bash(npm run:*)",
+      "Bash(node:*)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(curl:*)",
+      "Bash(npx tsx -e ':*)",
+      "Bash(npx tsx:*)"
     ]
   }
 }
