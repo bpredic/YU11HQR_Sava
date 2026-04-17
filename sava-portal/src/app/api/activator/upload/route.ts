@@ -3,6 +3,36 @@ import { getSession } from '@/lib/auth'
 import { parseCabrillo } from '@/lib/parsers/cabrillo'
 import { parseAdif } from '@/lib/parsers/adif'
 
+// Insert QSOs in chunks to stay within SQLite parameter limits
+const CHUNK_SIZE = 200
+
+type QsoRow = {
+  logFileId: number
+  activatorCall: string
+  hunterCall: string
+  frequency: number
+  band: string
+  mode: string
+  datetime: Date
+  sentRst: string
+  rcvdRst: string
+  sentExch: string | null
+  rcvdExch: string | null
+  isDuplicate: boolean
+  duplicateOfId: number | null
+}
+
+type DuplicateSummary = {
+  activatorCall: string
+  hunterCall: string
+  band: string
+  mode: string
+  datetime: Date
+  existingFilename?: string
+  existingUploadedAt?: Date
+  existingActivatorCall?: string
+}
+
 export async function POST(request: Request): Promise<Response> {
   const session = await getSession()
   if (!session || session.role !== 'activator') {
@@ -29,7 +59,10 @@ export async function POST(request: Request): Promise<Response> {
     parseResult = parseAdif(content)
     fileType = 'adif'
   } else {
-    return Response.json({ error: 'Unrecognized file format. Upload .log (Cabrillo) or .adi/.adif (ADIF) files.' }, { status: 400 })
+    return Response.json(
+      { error: 'Unrecognized file format. Upload .log (Cabrillo) or .adi/.adif (ADIF) files.' },
+      { status: 400 },
+    )
   }
 
   const { qsos, errors } = parseResult
@@ -38,122 +71,182 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: 'No valid QSOs found in file', parseErrors: errors }, { status: 400 })
   }
 
-  const activatorId = session.id
-
-  // Create log file record first
-  const datetimes = qsos.map(q => q.datetime.getTime())
-  const firstQsoAt = new Date(Math.min(...datetimes))
-  const lastQsoAt = new Date(Math.max(...datetimes))
+  // Compute first/last QSO times without spread operator to avoid stack overflow on large arrays
+  let minMs = qsos[0].datetime.getTime()
+  let maxMs = minMs
+  for (const q of qsos) {
+    const ms = q.datetime.getTime()
+    if (ms < minMs) minMs = ms
+    if (ms > maxMs) maxMs = ms
+  }
 
   const logFile = await prisma.logFile.create({
     data: {
-      activatorId,
+      activatorId: session.id,
       filename,
       fileType,
       qsoCount: 0,
-      firstQsoAt,
-      lastQsoAt,
+      firstQsoAt: new Date(minMs),
+      lastQsoAt: new Date(maxMs),
     },
   })
 
-  // Check for duplicates against existing QSOs in the database
+  // Collect unique calls for the bulk lookup query
+  const activatorCallSet = new Set(qsos.map(q => q.activatorCall))
+  const hunterCallSet = new Set(qsos.map(q => q.hunterCall))
+
+  // ONE query to fetch all existing QSOs that could overlap with any incoming QSO
+  const existingQsos = await prisma.qso.findMany({
+    where: {
+      activatorCall: { in: [...activatorCallSet] },
+      hunterCall: { in: [...hunterCallSet] },
+      logFileId: { not: logFile.id },
+      isDuplicate: false,
+    },
+    select: {
+      id: true,
+      activatorCall: true,
+      hunterCall: true,
+      band: true,
+      mode: true,
+      datetime: true,
+      logFile: {
+        select: {
+          filename: true,
+          uploadedAt: true,
+          activator: { select: { callsign: true } },
+        },
+      },
+    },
+  })
+
+  // Build in-memory map: "activatorCall|hunterCall|band|mode" → [{id, datetimeMs, meta}]
+  type MapEntry = {
+    id: number
+    datetimeMs: number
+    filename?: string
+    uploadedAt?: Date
+    activatorCall?: string
+  }
+  const existingMap = new Map<string, MapEntry[]>()
+
+  for (const eq of existingQsos) {
+    const key = `${eq.activatorCall}|${eq.hunterCall}|${eq.band}|${eq.mode}`
+    const arr = existingMap.get(key) ?? []
+    arr.push({
+      id: eq.id,
+      datetimeMs: eq.datetime.getTime(),
+      filename: eq.logFile.filename,
+      uploadedAt: eq.logFile.uploadedAt,
+      activatorCall: eq.logFile.activator.callsign,
+    })
+    existingMap.set(key, arr)
+  }
+
+  const WINDOW_MS = 5 * 60 * 1000
+  const toInsert: QsoRow[] = []
+  const duplicates: DuplicateSummary[] = []
   let newCount = 0
   let dupCount = 0
-  const duplicates: Array<{
-    qso: typeof qsos[0],
-    existingLogFileId: number,
-    existingActivatorCall: string,
-    existingUploadedAt: Date,
-    existingFilename: string,
-  }> = []
 
   for (const qso of qsos) {
-    // A duplicate is same activatorCall + hunterCall + band + mode within same 5-minute window
-    const windowStart = new Date(qso.datetime.getTime() - 5 * 60 * 1000)
-    const windowEnd = new Date(qso.datetime.getTime() + 5 * 60 * 1000)
+    const key = `${qso.activatorCall}|${qso.hunterCall}|${qso.band}|${qso.mode}`
+    const qsoMs = qso.datetime.getTime()
 
-    const existing = await prisma.qso.findFirst({
-      where: {
+    const entries = existingMap.get(key)
+    let matchEntry: MapEntry | undefined
+
+    if (entries) {
+      for (const entry of entries) {
+        if (Math.abs(entry.datetimeMs - qsoMs) <= WINDOW_MS) {
+          matchEntry = entry
+          break
+        }
+      }
+    }
+
+    if (matchEntry) {
+      dupCount++
+      toInsert.push({
+        logFileId: logFile.id,
+        activatorCall: qso.activatorCall,
+        hunterCall: qso.hunterCall,
+        frequency: qso.frequency,
+        band: qso.band,
+        mode: qso.mode,
+        datetime: qso.datetime,
+        sentRst: qso.sentRst,
+        rcvdRst: qso.rcvdRst,
+        sentExch: qso.sentExch ?? null,
+        rcvdExch: qso.rcvdExch ?? null,
+        isDuplicate: true,
+        duplicateOfId: matchEntry.id > 0 ? matchEntry.id : null,
+      })
+      duplicates.push({
         activatorCall: qso.activatorCall,
         hunterCall: qso.hunterCall,
         band: qso.band,
         mode: qso.mode,
-        datetime: { gte: windowStart, lte: windowEnd },
-        logFileId: { not: logFile.id },
-      },
-      include: { logFile: { include: { activator: true } } },
-    })
-
-    if (existing) {
-      dupCount++
-      duplicates.push({
-        qso,
-        existingLogFileId: existing.logFileId,
-        existingActivatorCall: existing.activatorCall,
-        existingUploadedAt: existing.logFile.uploadedAt,
-        existingFilename: existing.logFile.filename,
-      })
-      await prisma.qso.create({
-        data: {
-          logFileId: logFile.id,
-          activatorCall: qso.activatorCall,
-          hunterCall: qso.hunterCall,
-          frequency: qso.frequency,
-          band: qso.band,
-          mode: qso.mode,
-          datetime: qso.datetime,
-          sentRst: qso.sentRst,
-          rcvdRst: qso.rcvdRst,
-          sentExch: qso.sentExch,
-          rcvdExch: qso.rcvdExch,
-          isDuplicate: true,
-          duplicateOfId: existing.id,
-        },
+        datetime: qso.datetime,
+        existingFilename: matchEntry.filename,
+        existingUploadedAt: matchEntry.uploadedAt,
+        existingActivatorCall: matchEntry.activatorCall,
       })
     } else {
       newCount++
-      await prisma.qso.create({
-        data: {
-          logFileId: logFile.id,
-          activatorCall: qso.activatorCall,
-          hunterCall: qso.hunterCall,
-          frequency: qso.frequency,
-          band: qso.band,
-          mode: qso.mode,
-          datetime: qso.datetime,
-          sentRst: qso.sentRst,
-          rcvdRst: qso.rcvdRst,
-          sentExch: qso.sentExch,
-          rcvdExch: qso.rcvdExch,
-          isDuplicate: false,
-        },
+      // Add to in-memory map so later QSOs in the same file can detect this as a duplicate
+      // Use id=0 as sentinel for "not yet in DB but accepted in this batch"
+      const arr = existingMap.get(key) ?? []
+      arr.push({ id: 0, datetimeMs: qsoMs })
+      existingMap.set(key, arr)
+      toInsert.push({
+        logFileId: logFile.id,
+        activatorCall: qso.activatorCall,
+        hunterCall: qso.hunterCall,
+        frequency: qso.frequency,
+        band: qso.band,
+        mode: qso.mode,
+        datetime: qso.datetime,
+        sentRst: qso.sentRst,
+        rcvdRst: qso.rcvdRst,
+        sentExch: qso.sentExch ?? null,
+        rcvdExch: qso.rcvdExch ?? null,
+        isDuplicate: false,
+        duplicateOfId: null,
       })
     }
   }
 
-  // Update log file QSO count
+  // Batch insert in chunks to avoid SQLite parameter limits
+  for (let i = 0; i < toInsert.length; i += CHUNK_SIZE) {
+    await prisma.qso.createMany({ data: toInsert.slice(i, i + CHUNK_SIZE) })
+  }
+
   await prisma.logFile.update({
     where: { id: logFile.id },
     data: { qsoCount: qsos.length },
   })
 
-  return Response.json({
-    logFileId: logFile.id,
-    filename,
-    fileType,
-    totalQsos: qsos.length,
-    newQsos: newCount,
-    duplicateQsos: dupCount,
-    duplicates: duplicates.map(d => ({
-      activatorCall: d.qso.activatorCall,
-      hunterCall: d.qso.hunterCall,
-      band: d.qso.band,
-      mode: d.qso.mode,
-      datetime: d.qso.datetime,
-      existingActivatorCall: d.existingActivatorCall,
-      existingFilename: d.existingFilename,
-      existingUploadedAt: d.existingUploadedAt,
-    })),
-    parseErrors: errors,
-  }, { status: 201 })
+  return Response.json(
+    {
+      logFileId: logFile.id,
+      filename,
+      fileType,
+      totalQsos: qsos.length,
+      newQsos: newCount,
+      duplicateQsos: dupCount,
+      duplicates: duplicates.map(d => ({
+        activatorCall: d.activatorCall,
+        hunterCall: d.hunterCall,
+        band: d.band,
+        mode: d.mode,
+        datetime: d.datetime,
+        existingActivatorCall: d.existingActivatorCall,
+        existingFilename: d.existingFilename,
+        existingUploadedAt: d.existingUploadedAt,
+      })),
+      parseErrors: errors,
+    },
+    { status: 201 },
+  )
 }
