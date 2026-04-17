@@ -4,10 +4,12 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/components/TranslationsProvider'
 
 export function HunterSearch() {
   const [callsign, setCallsign] = useState('')
   const router = useRouter()
+  const t = useT()
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -27,7 +29,7 @@ export function HunterSearch() {
         maxLength={15}
       />
       <Button type="submit" disabled={!callsign.trim()}>
-        Search
+        {t.search}
       </Button>
     </form>
   )

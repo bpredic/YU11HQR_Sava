@@ -3,6 +3,8 @@ import { Outfit, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { TranslationsProvider } from '@/components/TranslationsProvider'
+import { getLocale, getTranslations } from '@/lib/i18n'
 
 const outfit = Outfit({
   variable: '--font-sans',
@@ -21,17 +23,22 @@ export const metadata: Metadata = {
   description: 'Amateur radio contest portal for Sava River Days 2026. Upload logs, track QSOs, and download your diploma.',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getLocale()
+  const translations = getTranslations(locale)
+
   return (
-    <html lang="en" className={`${outfit.variable} ${jetbrainsMono.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang={locale} className={`${outfit.variable} ${jetbrainsMono.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
-          {children}
-          <Toaster richColors position="top-right" />
+          <TranslationsProvider translations={translations} locale={locale}>
+            {children}
+            <Toaster richColors position="top-right" />
+          </TranslationsProvider>
         </ThemeProvider>
       </body>
     </html>

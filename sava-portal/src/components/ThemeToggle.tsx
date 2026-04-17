@@ -4,10 +4,12 @@ import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { SunIcon, MoonIcon } from 'lucide-react'
+import { useT } from '@/components/TranslationsProvider'
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const t = useT()
 
   // Avoid hydration mismatch
   useEffect(() => setMounted(true), [])
@@ -21,7 +23,7 @@ export function ThemeToggle() {
       size="icon-sm"
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       className="text-white hover:bg-white/20 hover:text-white"
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-label={isDark ? t.theme.switchToLight : t.theme.switchToDark}
     >
       {isDark ? <SunIcon className="w-4 h-4" /> : <MoonIcon className="w-4 h-4" />}
     </Button>

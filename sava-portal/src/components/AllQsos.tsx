@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { useT } from '@/components/TranslationsProvider'
 
 type Qso = {
   id: number
@@ -26,6 +27,7 @@ function fmt(dt: string) {
 export function AllQsos() {
   const [qsos, setQsos] = useState<Qso[]>([])
   const [loading, setLoading] = useState(true)
+  const t = useT()
 
   useEffect(() => {
     fetch('/api/activator/qsos')
@@ -33,7 +35,7 @@ export function AllQsos() {
       .then(d => { setQsos(d); setLoading(false) })
   }, [])
 
-  if (loading) return <p className="text-muted-foreground">Loading…</p>
+  if (loading) return <p className="text-muted-foreground">{t.allQsos.loading}</p>
 
   const unique = qsos.filter(q => !q.isDuplicate)
   const dupes = qsos.filter(q => q.isDuplicate)
@@ -41,31 +43,31 @@ export function AllQsos() {
   return (
     <div className="space-y-4">
       <div className="flex gap-4 text-sm text-muted-foreground">
-        <span>Total: <strong>{qsos.length}</strong></span>
-        <span>Unique: <strong className="text-green-600">{unique.length}</strong></span>
-        <span>Duplicates: <strong className="text-amber-600">{dupes.length}</strong></span>
+        <span>{t.allQsos.total} <strong>{qsos.length}</strong></span>
+        <span>{t.allQsos.unique} <strong className="text-green-600">{unique.length}</strong></span>
+        <span>{t.allQsos.duplicates} <strong className="text-amber-600">{dupes.length}</strong></span>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">QSO Log</CardTitle>
+          <CardTitle className="text-base">{t.allQsos.qsoLog}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           {qsos.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No QSOs found.</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t.allQsos.noQsos}</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Hunter</TableHead>
-                  <TableHead>Band</TableHead>
-                  <TableHead>Mode</TableHead>
-                  <TableHead>Freq (kHz)</TableHead>
-                  <TableHead>Date/Time (UTC)</TableHead>
-                  <TableHead>Sent RST</TableHead>
-                  <TableHead>Rcvd RST</TableHead>
-                  <TableHead>Log File</TableHead>
+                  <TableHead>{t.allQsos.colStatus}</TableHead>
+                  <TableHead>{t.allQsos.colHunter}</TableHead>
+                  <TableHead>{t.allQsos.colBand}</TableHead>
+                  <TableHead>{t.allQsos.colMode}</TableHead>
+                  <TableHead>{t.allQsos.colFreq}</TableHead>
+                  <TableHead>{t.allQsos.colDateTime}</TableHead>
+                  <TableHead>{t.allQsos.colSentRst}</TableHead>
+                  <TableHead>{t.allQsos.colRcvdRst}</TableHead>
+                  <TableHead>{t.allQsos.colLogFile}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -73,8 +75,8 @@ export function AllQsos() {
                   <TableRow key={q.id} className={q.isDuplicate ? 'opacity-60 bg-amber-50 dark:bg-amber-950/20' : ''}>
                     <TableCell>
                       {q.isDuplicate
-                        ? <Badge variant="outline" className="text-amber-600 border-amber-400">DUP</Badge>
-                        : <Badge variant="outline" className="text-green-600 border-green-400">OK</Badge>
+                        ? <Badge variant="outline" className="text-amber-600 border-amber-400">{t.allQsos.dup}</Badge>
+                        : <Badge variant="outline" className="text-green-600 border-green-400">{t.allQsos.ok}</Badge>
                       }
                     </TableCell>
                     <TableCell className="font-mono font-medium">{q.hunterCall}</TableCell>

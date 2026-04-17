@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Alert } from '@/components/ui/alert'
 import Link from 'next/link'
+import { useT } from '@/components/TranslationsProvider'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const t = useT()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -48,13 +50,13 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-[oklch(0.25_0.09_232)]">Sava River Days 2026</h1>
-        <p className="text-muted-foreground mt-1">Amateur Radio Contest Portal</p>
+        <h1 className="text-3xl font-bold text-[oklch(0.25_0.09_232)]">{t.login.title}</h1>
+        <p className="text-muted-foreground mt-1">{t.login.subtitle}</p>
       </div>
 
       <Card className="w-full max-w-md border-2">
         <CardHeader>
-          <CardTitle className="text-center">Activator / Admin Login</CardTitle>
+          <CardTitle className="text-center">{t.login.cardTitle}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -62,10 +64,10 @@ export default function LoginPage() {
               <Alert variant="destructive" className="text-sm">{error}</Alert>
             )}
             <div className="space-y-1">
-              <Label htmlFor="username">Callsign / Username</Label>
+              <Label htmlFor="username">{t.login.callsignLabel}</Label>
               <Input
                 id="username"
-                placeholder="YU1ABC or admin"
+                placeholder={t.login.callsignPlaceholder}
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 autoComplete="username"
@@ -73,7 +75,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t.login.passwordLabel}</Label>
               <Input
                 id="password"
                 type="password"
@@ -83,12 +85,12 @@ export default function LoginPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Logging in…' : 'Log In'}
+              {loading ? t.login.loggingIn : t.login.logIn}
             </Button>
           </form>
 
           <div className="mt-4 text-center text-sm text-muted-foreground">
-            <Link href="/" className="hover:underline">← Back to Hunter Lookup</Link>
+            <Link href="/" className="hover:underline">{t.login.backToHunter}</Link>
           </div>
         </CardContent>
       </Card>

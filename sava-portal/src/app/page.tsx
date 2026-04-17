@@ -1,4 +1,5 @@
 import { getSession } from '@/lib/auth'
+import { getLocale, getTranslations } from '@/lib/i18n'
 import { SiteHeader } from '@/components/SiteHeader'
 import { HunterSearch } from '@/components/HunterSearch'
 import { Card, CardContent } from '@/components/ui/card'
@@ -17,6 +18,8 @@ const ACTIVATORS = [
 
 export default async function HomePage() {
   const session = await getSession()
+  const locale = await getLocale()
+  const t = getTranslations(locale)
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -26,14 +29,13 @@ export default async function HomePage() {
         {/* Hero */}
         <section className="text-center mb-12">
           <h1 className="text-4xl font-bold text-[oklch(0.25_0.09_232)] mb-3">
-            Sava River Days 2026
+            {t.home.title}
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            June 1–7, 2026 · International HAM Radio Scavenger Hunt
+            {t.home.subtitle}
           </p>
           <p className="text-sm text-muted-foreground mt-2 max-w-xl mx-auto">
-            Hunters search for activators on air, collect QSOs and earn points.
-            Reach 10+ points including a QSO with <strong>YT1SAVA</strong> to earn your diploma.
+            {t.home.description('YT1SAVA')}
           </p>
         </section>
 
@@ -41,9 +43,9 @@ export default async function HomePage() {
         <section className="mb-12">
           <Card className="max-w-xl mx-auto border-2 border-[oklch(0.72_0.09_210)]">
             <CardContent className="pt-6">
-              <h2 className="text-xl font-semibold mb-4 text-center">Hunter Callsign Lookup</h2>
+              <h2 className="text-xl font-semibold mb-4 text-center">{t.home.hunterLookupTitle}</h2>
               <p className="text-sm text-muted-foreground text-center mb-4">
-                Enter your callsign to see your QSOs, points, and diploma eligibility
+                {t.home.hunterLookupDesc}
               </p>
               <HunterSearch />
             </CardContent>
@@ -54,29 +56,28 @@ export default async function HomePage() {
         <section className="grid md:grid-cols-2 gap-6 mb-12">
           <Card>
             <CardContent className="pt-6">
-              <h3 className="font-semibold text-lg mb-3">Diploma Conditions</h3>
+              <h3 className="font-semibold text-lg mb-3">{t.home.diplomaConditions}</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Valid QSOs: <strong>June 1–7, 2026</strong></li>
-                <li>• Minimum <strong>10 points</strong> required</li>
-                <li>• At least one QSO with <strong className="text-[oklch(0.35_0.10_232)]">YT1SAVA</strong> (mandatory)</li>
-                <li>• Max 1 QSO per activator per band per mode</li>
-                <li>• Digital modes (FT8, FT4, FT2) count separately</li>
+                <li>• {t.home.validQsos}</li>
+                <li>• {t.home.minPoints}</li>
+                <li>• {t.home.yt1savaRequired}</li>
+                <li>• {t.home.maxQso}</li>
+                <li>• {t.home.digitalModes}</li>
               </ul>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="pt-6">
-              <h3 className="font-semibold text-lg mb-3">Allowed Modes</h3>
+              <h3 className="font-semibold text-lg mb-3">{t.home.allowedModes}</h3>
               <div className="flex flex-wrap gap-2">
                 {['CW', 'SSB', 'FT8', 'FT4', 'FT2', 'FM'].map(m => (
                   <Badge key={m} variant="secondary" className="text-sm">{m}</Badge>
                 ))}
               </div>
-              <h3 className="font-semibold text-lg mt-4 mb-3">About Sava River Day</h3>
+              <h3 className="font-semibold text-lg mt-4 mb-3">{t.home.aboutTitle}</h3>
               <p className="text-sm text-muted-foreground">
-                June 1st is celebrated in Slovenia, Croatia, Bosnia &amp; Herzegovina, and Serbia
-                to promote the ecological value of the Sava River and regional cooperation.
+                {t.home.aboutText}
               </p>
             </CardContent>
           </Card>
@@ -84,7 +85,7 @@ export default async function HomePage() {
 
         {/* Activators table */}
         <section>
-          <h2 className="text-xl font-semibold mb-4 text-center">Activators &amp; Points</h2>
+          <h2 className="text-xl font-semibold mb-4 text-center">{t.home.activatorsPoints}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 max-w-4xl mx-auto">
             {ACTIVATORS.map(({ call, points }) => (
               <div
@@ -102,7 +103,7 @@ export default async function HomePage() {
                   }
                   variant={points === 1 ? 'secondary' : 'default'}
                 >
-                  {points} pt{points !== 1 ? 's' : ''}
+                  {points} {points === 1 ? t.home.pt : t.home.pts}
                 </Badge>
               </div>
             ))}
@@ -111,7 +112,7 @@ export default async function HomePage() {
       </main>
 
       <footer className="sava-header text-white/70 text-center py-4 text-sm mt-8">
-        Sava River Days 2026 · Amateur Radio Club YU1HQR · All rights reserved
+        {t.home.footer}
       </footer>
     </div>
   )

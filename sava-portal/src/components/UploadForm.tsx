@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Alert } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useT } from '@/components/TranslationsProvider'
 
 type DuplicateEntry = {
   activatorCall: string
@@ -38,6 +39,7 @@ export function UploadForm() {
   const [uploadError, setUploadError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+  const t = useT()
 
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault()
@@ -54,15 +56,15 @@ export function UploadForm() {
       const data = await res.json()
 
       if (!res.ok) {
-        setUploadError(data.error ?? 'Upload failed')
+        setUploadError(data.error ?? t.upload.uploadFailed)
         return
       }
 
       setResult(data)
-      toast.success(`Uploaded: ${data.newQsos} new QSOs added`)
+      toast.success(t.upload.uploadedSuccess(data.newQsos))
       router.refresh()
     } catch {
-      setUploadError('Network error. Please try again.')
+      setUploadError(t.upload.networkError)
     } finally {
       setUploading(false)
     }
@@ -84,8 +86,8 @@ export function UploadForm() {
                 </div>
               ) : (
                 <div>
-                  <p className="text-muted-foreground">Click to select a log file</p>
-                  <p className="text-xs text-muted-foreground mt-1">Supported: .log (Cabrillo), .adi / .adif (ADIF)</p>
+                  <p className="text-muted-foreground">{t.upload.clickToSelect}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t.upload.supported}</p>
                 </div>
               )}
               <input
@@ -102,7 +104,7 @@ export function UploadForm() {
             )}
 
             <Button type="submit" className="w-full" disabled={!file || uploading}>
-              {uploading ? 'Uploading…' : 'Upload Log File'}
+              {uploading ? t.upload.uploading : t.upload.uploadLogFile}
             </Button>
           </form>
         </CardContent>
@@ -119,30 +121,30 @@ export function UploadForm() {
             <div className="grid grid-cols-3 gap-4 text-center">
               <div className="rounded-lg bg-muted p-3">
                 <div className="text-2xl font-bold">{result.totalQsos}</div>
-                <div className="text-xs text-muted-foreground">Total QSOs</div>
+                <div className="text-xs text-muted-foreground">{t.upload.totalQsos}</div>
               </div>
               <div className="rounded-lg bg-green-50 dark:bg-green-950 p-3">
                 <div className="text-2xl font-bold text-green-700 dark:text-green-400">{result.newQsos}</div>
-                <div className="text-xs text-muted-foreground">New Added</div>
+                <div className="text-xs text-muted-foreground">{t.upload.newAdded}</div>
               </div>
               <div className="rounded-lg bg-amber-50 dark:bg-amber-950 p-3">
                 <div className="text-2xl font-bold text-amber-700 dark:text-amber-400">{result.duplicateQsos}</div>
-                <div className="text-xs text-muted-foreground">Duplicates</div>
+                <div className="text-xs text-muted-foreground">{t.upload.duplicates}</div>
               </div>
             </div>
 
             {result.duplicates.length > 0 && (
               <div>
-                <h3 className="font-semibold text-sm mb-2">Duplicate QSOs (skipped)</h3>
+                <h3 className="font-semibold text-sm mb-2">{t.upload.duplicateQsos}</h3>
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Hunter</TableHead>
-                        <TableHead>Band</TableHead>
-                        <TableHead>Mode</TableHead>
-                        <TableHead>DateTime</TableHead>
-                        <TableHead>Existing In</TableHead>
+                        <TableHead>{t.upload.colHunter}</TableHead>
+                        <TableHead>{t.upload.colBand}</TableHead>
+                        <TableHead>{t.upload.colMode}</TableHead>
+                        <TableHead>{t.upload.colDateTime}</TableHead>
+                        <TableHead>{t.upload.colExistingIn}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -163,7 +165,7 @@ export function UploadForm() {
 
             {result.parseErrors.length > 0 && (
               <div>
-                <h3 className="font-semibold text-sm mb-2 text-amber-600">Parse Warnings</h3>
+                <h3 className="font-semibold text-sm mb-2 text-amber-600">{t.upload.parseWarnings}</h3>
                 <ul className="text-xs text-muted-foreground space-y-1">
                   {result.parseErrors.map((e, i) => <li key={i}>• {e}</li>)}
                 </ul>

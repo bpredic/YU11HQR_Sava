@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/components/TranslationsProvider'
 
 type LogFile = {
   id: number
@@ -25,6 +26,7 @@ function fmt(dt: string | null) {
 export function ActivatorDashboard() {
   const [logs, setLogs] = useState<LogFile[]>([])
   const [loading, setLoading] = useState(true)
+  const t = useT()
 
   const fetchLogs = useCallback(async () => {
     const res = await fetch('/api/activator/logs')
@@ -35,34 +37,35 @@ export function ActivatorDashboard() {
 
   useEffect(() => { fetchLogs() }, [fetchLogs])
 
-  if (loading) return <p className="text-muted-foreground">Loading…</p>
+  if (loading) return <p className="text-muted-foreground">{t.dashboard.loading}</p>
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <p className="text-muted-foreground text-sm">{logs.length} file{logs.length !== 1 ? 's' : ''} uploaded</p>
+        <p className="text-muted-foreground text-sm">{t.dashboard.filesUploaded(logs.length)}</p>
         <Link href="/activator/upload">
-          <Button>Upload Log File</Button>
+          <Button>{t.dashboard.uploadLogFile}</Button>
         </Link>
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Uploaded Log Files</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">{t.dashboard.uploadedLogFiles}</CardTitle></CardHeader>
         <CardContent>
           {logs.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">
-              No log files uploaded yet. <Link href="/activator/upload" className="underline">Upload your first file</Link>.
+              {t.dashboard.noFiles}{' '}
+              <Link href="/activator/upload" className="underline">{t.dashboard.noFilesLink}</Link>.
             </p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Filename</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Uploaded</TableHead>
-                  <TableHead className="text-right">QSOs</TableHead>
-                  <TableHead>First QSO</TableHead>
-                  <TableHead>Last QSO</TableHead>
+                  <TableHead>{t.dashboard.colFilename}</TableHead>
+                  <TableHead>{t.dashboard.colType}</TableHead>
+                  <TableHead>{t.dashboard.colUploaded}</TableHead>
+                  <TableHead className="text-right">{t.dashboard.colQsos}</TableHead>
+                  <TableHead>{t.dashboard.colFirstQso}</TableHead>
+                  <TableHead>{t.dashboard.colLastQso}</TableHead>
                   <TableHead />
                 </TableRow>
               </TableHeader>
@@ -79,7 +82,7 @@ export function ActivatorDashboard() {
                     <TableCell className="text-sm text-muted-foreground">{fmt(l.lastQsoAt)}</TableCell>
                     <TableCell>
                       <Link href={`/activator/logs/${l.id}`}>
-                        <Button variant="outline" size="sm">View QSOs</Button>
+                        <Button variant="outline" size="sm">{t.dashboard.viewQsos}</Button>
                       </Link>
                     </TableCell>
                   </TableRow>

@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Alert } from '@/components/ui/alert'
+import { useT } from '@/components/TranslationsProvider'
 
 type Activator = {
   id: number
@@ -29,6 +30,7 @@ export function AdminActivators() {
   const [resetState, setResetState] = useState<{ id: number | null; password: string | null; resetting: number | null }>({
     id: null, password: null, resetting: null,
   })
+  const t = useT()
 
   const fetchActivators = useCallback(async () => {
     const res = await fetch('/api/admin/activators')
@@ -50,10 +52,10 @@ export function AdminActivators() {
       })
       const data = await res.json()
       if (!res.ok) {
-        toast.error(data.error ?? 'Failed to create activator')
+        toast.error(data.error ?? t.admin.createFailed)
         return
       }
-      toast.success(`Activator ${data.callsign} created successfully`)
+      toast.success(t.admin.activatorCreated(data.callsign))
       setNewPassword(data.tempPassword)
       setCallsign('')
       setEmail('')
@@ -64,24 +66,24 @@ export function AdminActivators() {
   }
 
   async function handleDelete(id: number, cs: string) {
-    if (!confirm(`Delete activator ${cs}? This will also delete all their log files and QSOs.`)) return
+    if (!confirm(t.admin.deleteConfirm(cs))) return
     const res = await fetch(`/api/admin/activators/${id}`, { method: 'DELETE' })
     if (res.ok) {
-      toast.success(`Activator ${cs} deleted`)
+      toast.success(t.admin.activatorDeleted(cs))
       fetchActivators()
     } else {
-      toast.error('Failed to delete activator')
+      toast.error(t.admin.deleteFailed)
     }
   }
 
   async function handleResetPassword(id: number, cs: string) {
-    if (!confirm(`Reset password for ${cs}? A new password will be generated and emailed to the registered address.`)) return
+    if (!confirm(t.admin.resetConfirm(cs))) return
     setResetState(s => ({ ...s, resetting: id }))
     try {
       const res = await fetch(`/api/admin/activators/${id}/reset-password`, { method: 'POST' })
       const data = await res.json()
       if (!res.ok) {
-        toast.error(data.error ?? 'Failed to reset password')
+        toast.error(data.error ?? t.admin.resetFailed)
         return
       }
       setResetState({ id, password: data.tempPassword, resetting: null })
@@ -93,37 +95,33 @@ export function AdminActivators() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">
-          {activators.length} activator{activators.length !== 1 ? 's' : ''} registered
-        </p>
+        <p className="text-muted-foreground text-sm">{t.admin.activatorsCount(activators.length)}</p>
         <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) setNewPassword(null) }}>
           <DialogTrigger render={<Button />}>
-            Add Activator
+            {t.admin.addActivator}
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Activator</DialogTitle>
+              <DialogTitle>{t.admin.addNewActivator}</DialogTitle>
             </DialogHeader>
             {newPassword ? (
               <div className="space-y-4">
                 <Alert className="text-sm">
-                  <p className="font-semibold mb-1">Activator created successfully!</p>
-                  <p>Temporary password: <code className="bg-muted px-1 rounded font-mono">{newPassword}</code></p>
-                  <p className="text-muted-foreground text-xs mt-1">
-                    A welcome email has been sent. Share this password with the activator if email is not configured.
-                  </p>
+                  <p className="font-semibold mb-1">{t.admin.createdTitle}</p>
+                  <p>{t.admin.tempPassword} <code className="bg-muted px-1 rounded font-mono">{newPassword}</code></p>
+                  <p className="text-muted-foreground text-xs mt-1">{t.admin.welcomeEmailSent}</p>
                 </Alert>
                 <Button className="w-full" onClick={() => { setOpen(false); setNewPassword(null) }}>
-                  Close
+                  {t.admin.close}
                 </Button>
               </div>
             ) : (
               <form onSubmit={handleCreate} className="space-y-4">
                 <div className="space-y-1">
-                  <Label htmlFor="cs">Callsign</Label>
+                  <Label htmlFor="cs">{t.admin.callsignLabel}</Label>
                   <Input
                     id="cs"
-                    placeholder="YU1ABC"
+                    placeholder={t.admin.callsignPlaceholder}
                     value={callsign}
                     onChange={e => setCallsign(e.target.value.toUpperCase())}
                     className="font-mono"
@@ -131,18 +129,18 @@ export function AdminActivators() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="em">Email</Label>
+                  <Label htmlFor="em">{t.admin.emailLabel}</Label>
                   <Input
                     id="em"
                     type="email"
-                    placeholder="activator@example.com"
+                    placeholder={t.admin.emailPlaceholder}
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     required
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={submitting}>
-                  {submitting ? 'Creating…' : 'Create Account & Send Email'}
+                  {submitting ? t.admin.creating : t.admin.createAccount}
                 </Button>
               </form>
             )}
@@ -157,18 +155,16 @@ export function AdminActivators() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Password Reset</DialogTitle>
+            <DialogTitle>{t.admin.passwordResetTitle}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Alert className="text-sm">
-              <p className="font-semibold mb-1">Password reset successfully!</p>
-              <p>New password: <code className="bg-muted px-1 rounded font-mono">{resetState.password}</code></p>
-              <p className="text-muted-foreground text-xs mt-1">
-                A notification email has been sent. Share this password manually if email is not configured.
-              </p>
+              <p className="font-semibold mb-1">{t.admin.passwordResetSuccess}</p>
+              <p>{t.admin.newPassword} <code className="bg-muted px-1 rounded font-mono">{resetState.password}</code></p>
+              <p className="text-muted-foreground text-xs mt-1">{t.admin.notificationSent}</p>
             </Alert>
             <Button className="w-full" onClick={() => setResetState({ id: null, password: null, resetting: null })}>
-              Close
+              {t.admin.close}
             </Button>
           </div>
         </DialogContent>
@@ -176,21 +172,21 @@ export function AdminActivators() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Registered Activators</CardTitle>
+          <CardTitle className="text-base">{t.admin.registeredActivators}</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-muted-foreground text-sm">Loading…</p>
+            <p className="text-muted-foreground text-sm">{t.admin.loading}</p>
           ) : activators.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center py-4">No activators registered yet.</p>
+            <p className="text-muted-foreground text-sm text-center py-4">{t.admin.noActivators}</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Callsign</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t.admin.colCallsign}</TableHead>
+                  <TableHead>{t.admin.colEmail}</TableHead>
+                  <TableHead>{t.admin.colCreated}</TableHead>
+                  <TableHead className="text-right">{t.admin.colActions}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -211,14 +207,14 @@ export function AdminActivators() {
                           disabled={resetState.resetting === a.id}
                           onClick={() => handleResetPassword(a.id, a.callsign)}
                         >
-                          {resetState.resetting === a.id ? 'Resetting…' : 'Reset Password'}
+                          {resetState.resetting === a.id ? t.admin.resetting : t.admin.resetPassword}
                         </Button>
                         <Button
                           variant="destructive"
                           size="sm"
                           onClick={() => handleDelete(a.id, a.callsign)}
                         >
-                          Delete
+                          {t.admin.delete}
                         </Button>
                       </div>
                     </TableCell>
