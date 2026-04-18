@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 
 const SR_COUNTRIES = new Set(['RS', 'HR', 'BA', 'ME', 'SI', 'MK'])
 
-export async function middleware(request: NextRequest): Promise<NextResponse> {
+export async function proxy(request: NextRequest): Promise<NextResponse> {
   const response = NextResponse.next()
 
   if (request.cookies.has('locale')) return response
