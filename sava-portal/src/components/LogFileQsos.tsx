@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/components/TranslationsProvider'
+import { QsoPagination } from '@/components/QsoPagination'
 
 type Qso = {
   id: number
@@ -42,6 +43,8 @@ export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId:
   const [qsos, setQsos] = useState<Qso[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
   const t = useT()
 
   useEffect(() => {
@@ -61,6 +64,7 @@ export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId:
 
   const unique = qsos.filter(q => !q.isDuplicate).length
   const dupes = qsos.filter(q => q.isDuplicate).length
+  const paginated = qsos.slice((page - 1) * pageSize, page * pageSize)
 
   return (
     <div className="space-y-4">
@@ -104,7 +108,7 @@ export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId:
               </TableRow>
             </TableHeader>
             <TableBody>
-              {qsos.map(q => (
+              {paginated.map(q => (
                 <TableRow key={q.id} className={q.isDuplicate ? 'opacity-50 bg-amber-50 dark:bg-amber-950/20' : ''}>
                   <TableCell>
                     {q.isDuplicate
@@ -123,6 +127,13 @@ export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId:
               ))}
             </TableBody>
           </Table>
+          <QsoPagination
+            total={qsos.length}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
         </CardContent>
       </Card>
     </div>

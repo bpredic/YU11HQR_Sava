@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { HunterSearch } from './HunterSearch'
 import { useT } from '@/components/TranslationsProvider'
+import { QsoPagination } from '@/components/QsoPagination'
 
 type QsoWithPoints = {
   id: number
@@ -39,6 +40,8 @@ export function HunterStats({ callsign }: { callsign: string }) {
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
   const t = useT()
 
   useEffect(() => {
@@ -172,7 +175,7 @@ export function HunterStats({ callsign }: { callsign: string }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {stats.qsos.map(q => (
+                {stats.qsos.slice((page - 1) * pageSize, page * pageSize).map(q => (
                   <TableRow key={q.id}>
                     <TableCell>
                       <span className="font-mono font-semibold">{q.activatorCall}</span>
@@ -200,6 +203,13 @@ export function HunterStats({ callsign }: { callsign: string }) {
                 ))}
               </TableBody>
             </Table>
+            <QsoPagination
+              total={stats.qsos.length}
+              page={page}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
           </CardContent>
         </Card>
       )}

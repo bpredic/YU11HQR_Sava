@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { useT } from '@/components/TranslationsProvider'
+import { QsoPagination } from '@/components/QsoPagination'
 
 type Qso = {
   id: number
@@ -35,6 +36,8 @@ export function AdminAllQsos() {
   const [callsignFilter, setCallsignFilter] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
   const t = useT()
 
   useEffect(() => {
@@ -70,12 +73,14 @@ export function AdminAllQsos() {
     setCallsignFilter('')
     setDateFrom('')
     setDateTo('')
+    setPage(1)
   }
 
   if (loading) return <p className="text-muted-foreground">{t.logFile.loading}</p>
 
   const unique = filtered.filter(q => !q.isDuplicate).length
   const dupes = filtered.filter(q => q.isDuplicate).length
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize)
 
   return (
     <div className="space-y-4">
@@ -87,7 +92,7 @@ export function AdminAllQsos() {
               <Label className="text-xs">{t.admin.filterActivator}</Label>
               <select
                 value={callsignFilter}
-                onChange={e => setCallsignFilter(e.target.value)}
+                onChange={e => { setCallsignFilter(e.target.value); setPage(1) }}
                 className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm font-mono shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
               >
                 <option value="">{t.admin.filterAllActivators}</option>
@@ -102,7 +107,7 @@ export function AdminAllQsos() {
               <Input
                 type="date"
                 value={dateFrom}
-                onChange={e => setDateFrom(e.target.value)}
+                onChange={e => { setDateFrom(e.target.value); setPage(1) }}
                 className="h-9 w-40"
               />
             </div>
@@ -112,7 +117,7 @@ export function AdminAllQsos() {
               <Input
                 type="date"
                 value={dateTo}
-                onChange={e => setDateTo(e.target.value)}
+                onChange={e => { setDateTo(e.target.value); setPage(1) }}
                 className="h-9 w-40"
               />
             </div>
@@ -159,43 +164,52 @@ export function AdminAllQsos() {
           ) : filtered.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">{t.admin.filterShowingQsos(0, qsos.length)}</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t.logFile.colStatus}</TableHead>
-                  <TableHead>{t.admin.colActivator}</TableHead>
-                  <TableHead>{t.logFile.colHunter}</TableHead>
-                  <TableHead>{t.logFile.colBand}</TableHead>
-                  <TableHead>{t.logFile.colMode}</TableHead>
-                  <TableHead>{t.logFile.colFreq}</TableHead>
-                  <TableHead>{t.logFile.colDateTime}</TableHead>
-                  <TableHead>{t.logFile.colSentRst}</TableHead>
-                  <TableHead>{t.logFile.colRcvdRst}</TableHead>
-                  <TableHead>{t.allQsos.colLogFile}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map(q => (
-                  <TableRow key={q.id} className={q.isDuplicate ? 'opacity-50 bg-amber-50 dark:bg-amber-950/20' : ''}>
-                    <TableCell>
-                      {q.isDuplicate
-                        ? <Badge variant="outline" className="text-amber-600 border-amber-400">{t.logFile.dup}</Badge>
-                        : <Badge variant="outline" className="text-green-600 border-green-400">{t.logFile.ok}</Badge>
-                      }
-                    </TableCell>
-                    <TableCell className="font-mono font-semibold">{q.activatorCall}</TableCell>
-                    <TableCell className="font-mono font-medium">{q.hunterCall}</TableCell>
-                    <TableCell>{q.band}</TableCell>
-                    <TableCell>{q.mode}</TableCell>
-                    <TableCell className="font-mono">{q.frequency}</TableCell>
-                    <TableCell className="text-sm">{fmt(q.datetime)}</TableCell>
-                    <TableCell className="text-sm">{q.sentRst}{q.sentExch ? ` / ${q.sentExch}` : ''}</TableCell>
-                    <TableCell className="text-sm">{q.rcvdRst}{q.rcvdExch ? ` / ${q.rcvdExch}` : ''}</TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">{q.logFile.filename}</TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t.logFile.colStatus}</TableHead>
+                    <TableHead>{t.admin.colActivator}</TableHead>
+                    <TableHead>{t.logFile.colHunter}</TableHead>
+                    <TableHead>{t.logFile.colBand}</TableHead>
+                    <TableHead>{t.logFile.colMode}</TableHead>
+                    <TableHead>{t.logFile.colFreq}</TableHead>
+                    <TableHead>{t.logFile.colDateTime}</TableHead>
+                    <TableHead>{t.logFile.colSentRst}</TableHead>
+                    <TableHead>{t.logFile.colRcvdRst}</TableHead>
+                    <TableHead>{t.allQsos.colLogFile}</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginated.map(q => (
+                    <TableRow key={q.id} className={q.isDuplicate ? 'opacity-50 bg-amber-50 dark:bg-amber-950/20' : ''}>
+                      <TableCell>
+                        {q.isDuplicate
+                          ? <Badge variant="outline" className="text-amber-600 border-amber-400">{t.logFile.dup}</Badge>
+                          : <Badge variant="outline" className="text-green-600 border-green-400">{t.logFile.ok}</Badge>
+                        }
+                      </TableCell>
+                      <TableCell className="font-mono font-semibold">{q.activatorCall}</TableCell>
+                      <TableCell className="font-mono font-medium">{q.hunterCall}</TableCell>
+                      <TableCell>{q.band}</TableCell>
+                      <TableCell>{q.mode}</TableCell>
+                      <TableCell className="font-mono">{q.frequency}</TableCell>
+                      <TableCell className="text-sm">{fmt(q.datetime)}</TableCell>
+                      <TableCell className="text-sm">{q.sentRst}{q.sentExch ? ` / ${q.sentExch}` : ''}</TableCell>
+                      <TableCell className="text-sm">{q.rcvdRst}{q.rcvdExch ? ` / ${q.rcvdExch}` : ''}</TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground">{q.logFile.filename}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <QsoPagination
+                total={filtered.length}
+                page={page}
+                pageSize={pageSize}
+                onPageChange={setPage}
+                onPageSizeChange={setPageSize}
+              />
+            </>
           )}
         </CardContent>
       </Card>

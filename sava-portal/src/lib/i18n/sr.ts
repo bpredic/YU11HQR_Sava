@@ -236,4 +236,8 @@ export const sr: typeof en = {
     switchToLight: 'Prebaci na svetlu temu',
     switchToDark: 'Prebaci na tamnu temu',
   },
+  pagination: {
+    rowsPerPage: 'Redova po strani:',
+    showing: (from: number, to: number, total: number) => `${from}–${to} od ${total}`,
+  },
 }

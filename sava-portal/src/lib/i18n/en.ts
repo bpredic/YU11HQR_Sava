@@ -234,4 +234,8 @@ export const en = {
     switchToLight: 'Switch to light mode',
     switchToDark: 'Switch to dark mode',
   },
+  pagination: {
+    rowsPerPage: 'Rows per page:',
+    showing: (from: number, to: number, total: number) => `${from}–${to} of ${total}`,
+  },
 }
