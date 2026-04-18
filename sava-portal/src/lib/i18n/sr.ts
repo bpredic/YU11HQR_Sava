@@ -34,6 +34,10 @@ export const sr: typeof en = {
     pt: 'bod',
     pts: 'bodova',
     footer: 'Sava River Days 2026 · Radioamaterski klub YU1HQR · Sva prava zadržana',
+    activeNow: 'AKTIVAN SADA',
+    activeUntil: 'Do',
+    nextActivation: 'Sledeća aktivacija',
+    noActivity: 'Nema planiranih aktivnosti',
   },
   changePassword: {
     title: 'Postavi novu lozinku',
