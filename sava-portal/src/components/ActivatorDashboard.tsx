@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useT } from '@/components/TranslationsProvider'
 
 type LogFile = {
@@ -26,6 +28,8 @@ function fmt(dt: string | null) {
 export function ActivatorDashboard() {
   const [logs, setLogs] = useState<LogFile[]>([])
   const [loading, setLoading] = useState(true)
+  const [deleteTarget, setDeleteTarget] = useState<LogFile | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const t = useT()
 
   const fetchLogs = useCallback(async () => {
@@ -37,9 +41,44 @@ export function ActivatorDashboard() {
 
   useEffect(() => { fetchLogs() }, [fetchLogs])
 
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/activator/logs/${deleteTarget.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      toast.success(t.dashboard.deleteLogSuccess(deleteTarget.filename))
+      setDeleteTarget(null)
+      fetchLogs()
+    } catch {
+      toast.error(t.dashboard.deleteLogFailed)
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   if (loading) return <p className="text-muted-foreground">{t.dashboard.loading}</p>
 
   return (
+    <>
+    <Dialog open={deleteTarget !== null} onOpenChange={v => { if (!v) setDeleteTarget(null) }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t.dashboard.deleteLogConfirmTitle}</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          {deleteTarget && t.dashboard.deleteLogConfirmBody(deleteTarget.filename, deleteTarget.qsoCount)}
+        </p>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+            {t.dashboard.deleteLogCancel}
+          </Button>
+          <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+            {deleting ? '…' : t.dashboard.deleteLogConfirm}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <p className="text-muted-foreground text-sm">{t.dashboard.filesUploaded(logs.length)}</p>
@@ -81,9 +120,18 @@ export function ActivatorDashboard() {
                     <TableCell className="text-sm text-muted-foreground">{fmt(l.firstQsoAt)}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{fmt(l.lastQsoAt)}</TableCell>
                     <TableCell>
-                      <Link href={`/activator/logs/${l.id}`}>
-                        <Button variant="outline" size="sm">{t.dashboard.viewQsos}</Button>
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link href={`/activator/logs/${l.id}`}>
+                          <Button variant="outline" size="sm">{t.dashboard.viewQsos}</Button>
+                        </Link>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setDeleteTarget(l)}
+                        >
+                          {t.dashboard.deleteLog}
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -93,5 +141,6 @@ export function ActivatorDashboard() {
         </CardContent>
       </Card>
     </div>
+    </>
   )
 }
