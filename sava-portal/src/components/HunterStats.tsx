@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { HunterSearch } from './HunterSearch'
 import { useT } from '@/components/TranslationsProvider'
 import { QsoPagination } from '@/components/QsoPagination'
+import { Spinner } from '@/components/ui/spinner'
 
 type QsoWithPoints = {
   id: number
@@ -71,7 +72,7 @@ export function HunterStats({ callsign }: { callsign: string }) {
     }
   }
 
-  if (loading) return <p className="text-muted-foreground">{t.hunter.loading}</p>
+  if (loading) return <div className="flex items-center gap-2 text-muted-foreground"><Spinner className="h-4 w-4" />{t.hunter.loading}</div>
 
   if (!stats) return (
     <div className="text-center py-12">

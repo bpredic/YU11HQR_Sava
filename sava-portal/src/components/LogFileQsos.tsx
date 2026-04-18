@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/components/TranslationsProvider'
 import { QsoPagination } from '@/components/QsoPagination'
+import { Spinner } from '@/components/ui/spinner'
 
 type Qso = {
   id: number
@@ -59,7 +60,7 @@ export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId:
       .finally(() => setLoading(false))
   }, [logFileId])
 
-  if (loading) return <p className="text-muted-foreground">{t.logFile.loading}</p>
+  if (loading) return <div className="flex items-center gap-2 text-muted-foreground"><Spinner className="h-4 w-4" />{t.logFile.loading}</div>
   if (error) return <p className="text-destructive">{error}</p>
 
   const unique = qsos.filter(q => !q.isDuplicate).length

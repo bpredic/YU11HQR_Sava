@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { useT } from '@/components/TranslationsProvider'
 import { QsoPagination } from '@/components/QsoPagination'
+import { Spinner } from '@/components/ui/spinner'
 
 type Qso = {
   id: number
@@ -76,7 +77,7 @@ export function AdminAllQsos() {
     setPage(1)
   }
 
-  if (loading) return <p className="text-muted-foreground">{t.logFile.loading}</p>
+  if (loading) return <div className="flex items-center gap-2 text-muted-foreground"><Spinner className="h-4 w-4" />{t.logFile.loading}</div>
 
   const unique = filtered.filter(q => !q.isDuplicate).length
   const dupes = filtered.filter(q => q.isDuplicate).length

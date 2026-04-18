@@ -229,6 +229,7 @@ export const en = {
     colExistingIn: 'Existing In',
     parseWarnings: 'Parse Warnings',
     uploadFailed: 'Upload failed',
+    processingHint: 'Processing log file — this may take a moment for large files…',
   },
   theme: {
     switchToLight: 'Switch to light mode',

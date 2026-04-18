@@ -231,6 +231,7 @@ export const sr: typeof en = {
     colExistingIn: 'Postoji u',
     parseWarnings: 'Upozorenja parsiranja',
     uploadFailed: 'Otpremanje nije uspelo',
+    processingHint: 'Obrada log fajla — može potrajati za velike fajlove…',
   },
   theme: {
     switchToLight: 'Prebaci na svetlu temu',

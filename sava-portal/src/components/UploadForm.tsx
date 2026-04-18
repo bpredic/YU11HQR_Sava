@@ -9,6 +9,7 @@ import { Alert } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useT } from '@/components/TranslationsProvider'
+import { Spinner } from '@/components/ui/spinner'
 
 type DuplicateEntry = {
   activatorCall: string
@@ -104,8 +105,18 @@ export function UploadForm() {
             )}
 
             <Button type="submit" className="w-full" disabled={!file || uploading}>
+              {uploading && <Spinner className="mr-2 h-4 w-4" />}
               {uploading ? t.upload.uploading : t.upload.uploadLogFile}
             </Button>
+
+            {uploading && (
+              <div className="space-y-1">
+                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-primary rounded-full origin-left animate-[indeterminate_1.4s_ease-in-out_infinite]" />
+                </div>
+                <p className="text-xs text-muted-foreground text-center">{t.upload.processingHint}</p>
+              </div>
+            )}
           </form>
         </CardContent>
       </Card>

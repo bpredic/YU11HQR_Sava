@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from '@/components/ui/badge'
 import { Alert } from '@/components/ui/alert'
 import { useT } from '@/components/TranslationsProvider'
+import { Spinner } from '@/components/ui/spinner'
 
 type Activator = {
   id: number
@@ -211,7 +212,7 @@ export function AdminActivators() {
             </DialogTitle>
           </DialogHeader>
           {sessionsDialog.loading ? (
-            <p className="text-sm text-muted-foreground">{t.admin.loginSessionsLoading}</p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground py-2"><Spinner className="h-4 w-4" />{t.admin.loginSessionsLoading}</div>
           ) : sessionsDialog.sessions.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">{t.admin.loginSessionsEmpty}</p>
           ) : (
@@ -247,7 +248,7 @@ export function AdminActivators() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-muted-foreground text-sm">{t.admin.loading}</p>
+            <div className="flex items-center gap-2 text-muted-foreground text-sm"><Spinner className="h-4 w-4" />{t.admin.loading}</div>
           ) : activators.length === 0 ? (
             <p className="text-muted-foreground text-sm text-center py-4">{t.admin.noActivators}</p>
           ) : (

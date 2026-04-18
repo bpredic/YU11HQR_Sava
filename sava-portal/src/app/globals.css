@@ -153,3 +153,9 @@
   background-size: cover;
   height: 60px;
 }
+
+@keyframes indeterminate {
+  0%   { transform: translateX(-100%) scaleX(0.5); }
+  50%  { transform: translateX(0%)    scaleX(0.6); }
+  100% { transform: translateX(200%)  scaleX(0.5); }
+}

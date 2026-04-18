@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useT } from '@/components/TranslationsProvider'
+import { Spinner } from '@/components/ui/spinner'
 
 type LogFile = {
   id: number
@@ -91,7 +92,7 @@ export function AdminLogFiles() {
     setDateTo('')
   }
 
-  if (loading) return <p className="text-muted-foreground">{t.dashboard.loading}</p>
+  if (loading) return <div className="flex items-center gap-2 text-muted-foreground"><Spinner className="h-4 w-4" />{t.dashboard.loading}</div>
 
   return (
     <>

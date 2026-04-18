@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { useT } from '@/components/TranslationsProvider'
 import { QsoPagination } from '@/components/QsoPagination'
+import { Spinner } from '@/components/ui/spinner'
 
 type Qso = {
   id: number
@@ -38,7 +39,7 @@ export function AllQsos() {
       .then(d => { setQsos(d); setLoading(false) })
   }, [])
 
-  if (loading) return <p className="text-muted-foreground">{t.allQsos.loading}</p>
+  if (loading) return <div className="flex items-center gap-2 text-muted-foreground"><Spinner className="h-4 w-4" />{t.allQsos.loading}</div>
 
   const unique = qsos.filter(q => !q.isDuplicate)
   const dupes = qsos.filter(q => q.isDuplicate)
