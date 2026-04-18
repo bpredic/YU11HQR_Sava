@@ -42,11 +42,17 @@ export function SiteHeader({ user }: Props) {
 
             <button
               onClick={toggleLocale}
-              className="text-lg leading-none hover:opacity-80 transition-opacity px-1"
+              className="hover:opacity-80 transition-opacity px-1"
               aria-label="Switch language"
               title={locale === 'en' ? 'Srpski' : 'English'}
             >
-              {locale === 'en' ? '🇷🇸' : '🇬🇧'}
+              <img
+                src={locale === 'en' ? '/sr_flag.png' : '/us_flag.png'}
+                alt={locale === 'en' ? 'Srpski' : 'English'}
+                width={24}
+                height={16}
+                className="inline-block"
+              />
             </button>
 
             {!user && (
