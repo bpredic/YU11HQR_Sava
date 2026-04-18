@@ -38,7 +38,7 @@ function fmt(dt: string) {
   return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
 }
 
-export function LogFileQsos({ logFileId }: { logFileId: number }) {
+export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId: number; backHref?: string }) {
   const [logFile, setLogFile] = useState<LogFile | null>(null)
   const [qsos, setQsos] = useState<Qso[]>([])
   const [loading, setLoading] = useState(true)
@@ -66,7 +66,7 @@ export function LogFileQsos({ logFileId }: { logFileId: number }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Link href="/activator"><Button variant="outline" size="sm">{t.logFile.backToLogs}</Button></Link>
+        <Link href={backHref}><Button variant="outline" size="sm">{t.logFile.backToLogs}</Button></Link>
         <h1 className="text-xl font-bold font-mono">{logFile?.filename}</h1>
         <Badge variant="outline">{logFile?.fileType.toUpperCase()}</Badge>
       </div>

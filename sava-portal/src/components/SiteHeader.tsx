@@ -42,10 +42,11 @@ export function SiteHeader({ user }: Props) {
 
             <button
               onClick={toggleLocale}
-              className="text-xs font-semibold text-sky-200 hover:text-white transition-colors px-1 tabular-nums"
+              className="text-lg leading-none hover:opacity-80 transition-opacity px-1"
               aria-label="Switch language"
+              title={locale === 'en' ? 'Srpski' : 'English'}
             >
-              {locale === 'en' ? 'SR' : 'EN'}
+              {locale === 'en' ? '🇷🇸' : '🇬🇧'}
             </button>
 
             {!user && (
@@ -67,6 +68,11 @@ export function SiteHeader({ user }: Props) {
                 <Link href="/admin">
                   <Button variant="ghost" className="text-white hover:bg-white/20 hover:text-white">
                     {t.nav.adminPanel}
+                  </Button>
+                </Link>
+                <Link href="/admin/logs">
+                  <Button variant="ghost" className="text-white hover:bg-white/20 hover:text-white">
+                    {t.admin.allLogFiles}
                   </Button>
                 </Link>
                 <Button onClick={handleLogout} variant="outline" className="border-white/30 text-white bg-white/10 hover:bg-white/20 hover:text-white">

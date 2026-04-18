@@ -4,7 +4,7 @@ import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { TranslationsProvider } from '@/components/TranslationsProvider'
-import { getLocale, getTranslations } from '@/lib/i18n'
+import { getLocale } from '@/lib/i18n'
 
 const outfit = Outfit({
   variable: '--font-sans',
@@ -29,13 +29,12 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   const locale = await getLocale()
-  const translations = getTranslations(locale)
 
   return (
     <html lang={locale} className={`${outfit.variable} ${jetbrainsMono.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
-          <TranslationsProvider translations={translations} locale={locale}>
+          <TranslationsProvider locale={locale}>
             {children}
             <Toaster richColors position="top-right" />
           </TranslationsProvider>

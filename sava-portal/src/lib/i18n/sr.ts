@@ -95,6 +95,8 @@ export const sr: typeof en = {
   },
   admin: {
     pageTitle: 'Admin panel – Upravljanje aktivatorima',
+    allLogFiles: 'Svi log fajlovi',
+    colActivator: 'Aktivator',
     activatorsCount: (n: number) => `${n} aktivator${n !== 1 ? 'a' : ''} registrovan${n !== 1 ? 'o' : ''}`,
     addActivator: 'Dodaj aktivatora',
     addNewActivator: 'Dodaj novog aktivatora',

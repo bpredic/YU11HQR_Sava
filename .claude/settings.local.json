@@ -20,7 +20,10 @@
       "Bash(curl:*)",
       "Bash(npx tsx -e ':*)",
       "Bash(npx tsx:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd:*)",
+      "Bash(echo \"exit: $?\")"
     ]
   }
 }

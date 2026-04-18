@@ -93,6 +93,8 @@ export const en = {
   },
   admin: {
     pageTitle: 'Admin Panel – Activator Management',
+    allLogFiles: 'All Log Files',
+    colActivator: 'Activator',
     activatorsCount: (n: number) => `${n} activator${n !== 1 ? 's' : ''} registered`,
     addActivator: 'Add Activator',
     addNewActivator: 'Add New Activator',

@@ -6,16 +6,18 @@ export async function GET(
   ctx: RouteContext<'/api/activator/logs/[id]/qsos'>
 ): Promise<Response> {
   const session = await getSession()
-  if (!session || session.role !== 'activator') {
+  if (!session || (session.role !== 'activator' && session.role !== 'admin')) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const { id } = await ctx.params
   const logFileId = parseInt(id, 10)
 
-  // Verify this log file belongs to this activator
+  // Admins can view any log file; activators only their own
   const logFile = await prisma.logFile.findFirst({
-    where: { id: logFileId, activatorId: session.id },
+    where: session.role === 'admin'
+      ? { id: logFileId }
+      : { id: logFileId, activatorId: session.id },
   })
   if (!logFile) {
     return Response.json({ error: 'Not found' }, { status: 404 })
