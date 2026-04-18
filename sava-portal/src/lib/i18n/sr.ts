@@ -96,6 +96,7 @@ export const sr: typeof en = {
   admin: {
     pageTitle: 'Admin panel – Upravljanje aktivatorima',
     allLogFiles: 'Svi log fajlovi',
+    allQsos: 'Svi QSO-ovi',
     colActivator: 'Aktivator',
     filterActivator: 'Aktivator',
     filterAllActivators: 'Svi aktivatori',

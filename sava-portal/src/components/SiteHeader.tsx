@@ -75,6 +75,11 @@ export function SiteHeader({ user }: Props) {
                     {t.admin.allLogFiles}
                   </Button>
                 </Link>
+                <Link href="/admin/qsos">
+                  <Button variant="ghost" className="text-white hover:bg-white/20 hover:text-white">
+                    {t.admin.allQsos}
+                  </Button>
+                </Link>
                 <Button onClick={handleLogout} variant="outline" className="border-white/30 text-white bg-white/10 hover:bg-white/20 hover:text-white">
                   {t.nav.logout}
                 </Button>

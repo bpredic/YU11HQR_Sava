@@ -1,0 +1,112 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { useT } from '@/components/TranslationsProvider'
+
+type Qso = {
+  id: number
+  activatorCall: string
+  hunterCall: string
+  frequency: number
+  band: string
+  mode: string
+  datetime: string
+  sentRst: string
+  rcvdRst: string
+  sentExch: string
+  rcvdExch: string
+  isDuplicate: boolean
+  logFile: { filename: string }
+}
+
+function fmt(dt: string) {
+  return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
+}
+
+export function AdminAllQsos() {
+  const [qsos, setQsos] = useState<Qso[]>([])
+  const [loading, setLoading] = useState(true)
+  const t = useT()
+
+  useEffect(() => {
+    fetch('/api/admin/qsos')
+      .then(r => r.json())
+      .then(d => { setQsos(d); setLoading(false) })
+  }, [])
+
+  if (loading) return <p className="text-muted-foreground">{t.logFile.loading}</p>
+
+  const unique = qsos.filter(q => !q.isDuplicate).length
+  const dupes = qsos.filter(q => q.isDuplicate).length
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-lg bg-muted p-3 text-center">
+          <div className="text-2xl font-bold">{qsos.length}</div>
+          <div className="text-xs text-muted-foreground">{t.logFile.totalQsos}</div>
+        </div>
+        <div className="rounded-lg bg-green-50 dark:bg-green-950 p-3 text-center">
+          <div className="text-2xl font-bold text-green-700 dark:text-green-400">{unique}</div>
+          <div className="text-xs text-muted-foreground">{t.allQsos.unique}</div>
+        </div>
+        <div className="rounded-lg bg-amber-50 dark:bg-amber-950 p-3 text-center">
+          <div className="text-2xl font-bold text-amber-700 dark:text-amber-400">{dupes}</div>
+          <div className="text-xs text-muted-foreground">{t.logFile.duplicates}</div>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t.logFile.contacts}</CardTitle>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          {qsos.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">{t.allQsos.noQsos}</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t.logFile.colStatus}</TableHead>
+                  <TableHead>{t.admin.colActivator}</TableHead>
+                  <TableHead>{t.logFile.colHunter}</TableHead>
+                  <TableHead>{t.logFile.colBand}</TableHead>
+                  <TableHead>{t.logFile.colMode}</TableHead>
+                  <TableHead>{t.logFile.colFreq}</TableHead>
+                  <TableHead>{t.logFile.colDateTime}</TableHead>
+                  <TableHead>{t.logFile.colSentRst}</TableHead>
+                  <TableHead>{t.logFile.colRcvdRst}</TableHead>
+                  <TableHead>{t.allQsos.colLogFile}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {qsos.map(q => (
+                  <TableRow key={q.id} className={q.isDuplicate ? 'opacity-50 bg-amber-50 dark:bg-amber-950/20' : ''}>
+                    <TableCell>
+                      {q.isDuplicate
+                        ? <Badge variant="outline" className="text-amber-600 border-amber-400">{t.logFile.dup}</Badge>
+                        : <Badge variant="outline" className="text-green-600 border-green-400">{t.logFile.ok}</Badge>
+                      }
+                    </TableCell>
+                    <TableCell className="font-mono font-semibold">{q.activatorCall}</TableCell>
+                    <TableCell className="font-mono font-medium">{q.hunterCall}</TableCell>
+                    <TableCell>{q.band}</TableCell>
+                    <TableCell>{q.mode}</TableCell>
+                    <TableCell className="font-mono">{q.frequency}</TableCell>
+                    <TableCell className="text-sm">{fmt(q.datetime)}</TableCell>
+                    <TableCell className="text-sm">{q.sentRst}{q.sentExch ? ` / ${q.sentExch}` : ''}</TableCell>
+                    <TableCell className="text-sm">{q.rcvdRst}{q.rcvdExch ? ` / ${q.rcvdExch}` : ''}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{q.logFile.filename}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

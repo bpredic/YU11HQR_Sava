@@ -94,6 +94,7 @@ export const en = {
   admin: {
     pageTitle: 'Admin Panel – Activator Management',
     allLogFiles: 'All Log Files',
+    allQsos: 'All QSOs',
     colActivator: 'Activator',
     filterActivator: 'Activator',
     filterAllActivators: 'All activators',
