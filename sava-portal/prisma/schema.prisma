@@ -31,6 +31,7 @@ model LoginSession {
   activatorId Int
   activator   Activator @relation(fields: [activatorId], references: [id], onDelete: Cascade)
   loggedInAt  DateTime  @default(now())
+  ipAddress   String?
 
   @@index([activatorId])
 }

@@ -23,6 +23,7 @@ type Activator = {
 type LoginSession = {
   id: number
   loggedInAt: string
+  ipAddress: string | null
 }
 
 export function AdminActivators() {
@@ -219,6 +220,7 @@ export function AdminActivators() {
                 <TableRow>
                   <TableHead>#</TableHead>
                   <TableHead>{t.admin.colLastLogin}</TableHead>
+                  <TableHead>IP</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -227,6 +229,9 @@ export function AdminActivators() {
                     <TableCell className="text-muted-foreground text-sm">{i + 1}</TableCell>
                     <TableCell className="text-sm font-mono">
                       {new Date(s.loggedInAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'medium' })}
+                    </TableCell>
+                    <TableCell className="text-sm font-mono text-muted-foreground">
+                      {s.ipAddress ?? '—'}
                     </TableCell>
                   </TableRow>
                 ))}

@@ -17,7 +17,7 @@ export async function GET(
   const sessions = await prisma.loginSession.findMany({
     where: { activatorId },
     orderBy: { loggedInAt: 'desc' },
-    select: { id: true, loggedInAt: true },
+    select: { id: true, loggedInAt: true, ipAddress: true },
   })
 
   return Response.json(sessions)

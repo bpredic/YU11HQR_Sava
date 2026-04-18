@@ -16,6 +16,9 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const { username, password } = parsed.data
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim()
+    ?? request.headers.get('x-real-ip')
+    ?? null
 
   // Try admin user first
   const adminUser = await prisma.user.findUnique({ where: { username } })
@@ -40,7 +43,7 @@ export async function POST(request: Request): Promise<Response> {
         data: { lastLoginAt: now },
       }),
       prisma.loginSession.create({
-        data: { activatorId: activator.id, loggedInAt: now },
+        data: { activatorId: activator.id, loggedInAt: now, ipAddress: ip },
       }),
     ])
     return Response.json({ role: 'activator' })
