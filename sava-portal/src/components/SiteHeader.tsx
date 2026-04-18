@@ -10,6 +10,7 @@ import { ChangePasswordDialog } from '@/components/ChangePasswordDialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
