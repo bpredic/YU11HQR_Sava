@@ -11,16 +11,28 @@ import type { PasswordError } from '@/lib/password'
 
 type Props = {
   role: 'admin' | 'activator'
+  /** Desktop mode: renders a trigger button inside a self-contained Dialog */
   triggerClassName?: string
+  /** Mobile/controlled mode: open state managed externally */
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function ChangePasswordDialog({ role, triggerClassName }: Props) {
-  const [open, setOpen] = useState(false)
+export function ChangePasswordDialog({ role, triggerClassName, open: controlledOpen, onOpenChange }: Props) {
+  const [internalOpen, setInternalOpen] = useState(false)
   const [current, setCurrent] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [saving, setSaving] = useState(false)
   const t = useT()
+
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : internalOpen
+
+  function setOpen(v: boolean) {
+    if (isControlled) onOpenChange?.(v)
+    else setInternalOpen(v)
+  }
 
   function reset() {
     setCurrent('')
@@ -69,59 +81,71 @@ export function ChangePasswordDialog({ role, triggerClassName }: Props) {
     }
   }
 
+  const form = (
+    <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+      <div className="space-y-1">
+        <Label htmlFor="cp-current">{t.changePassword.currentPassword}</Label>
+        <Input
+          id="cp-current"
+          type="password"
+          value={current}
+          onChange={e => setCurrent(e.target.value)}
+          required
+          autoFocus
+        />
+      </div>
+      <div className="space-y-1">
+        <Label htmlFor="cp-new">{t.changePassword.newPassword}</Label>
+        <Input
+          id="cp-new"
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          required
+        />
+      </div>
+      <div className="space-y-1">
+        <Label htmlFor="cp-confirm">{t.changePassword.confirmPassword}</Label>
+        <Input
+          id="cp-confirm"
+          type="password"
+          value={confirm}
+          onChange={e => setConfirm(e.target.value)}
+          required
+        />
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Min. 8 characters · uppercase · number · special character
+      </p>
+      <Button type="submit" className="w-full" disabled={saving}>
+        {saving ? t.changePassword.saving : t.changePassword.saveVoluntary}
+      </Button>
+    </form>
+  )
+
+  if (isControlled) {
+    return (
+      <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) reset() }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t.changePassword.titleVoluntary}</DialogTitle>
+          </DialogHeader>
+          {form}
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   return (
     <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) reset() }}>
-      <DialogTrigger render={
-        <Button
-          variant="ghost"
-          className={triggerClassName}
-        />
-      }>
+      <DialogTrigger render={<Button variant="ghost" className={triggerClassName} />}>
         {t.changePassword.changePasswordNav}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t.changePassword.titleVoluntary}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 pt-1">
-          <div className="space-y-1">
-            <Label htmlFor="cp-current">{t.changePassword.currentPassword}</Label>
-            <Input
-              id="cp-current"
-              type="password"
-              value={current}
-              onChange={e => setCurrent(e.target.value)}
-              required
-              autoFocus
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="cp-new">{t.changePassword.newPassword}</Label>
-            <Input
-              id="cp-new"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="cp-confirm">{t.changePassword.confirmPassword}</Label>
-            <Input
-              id="cp-confirm"
-              type="password"
-              value={confirm}
-              onChange={e => setConfirm(e.target.value)}
-              required
-            />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Min. 8 characters · uppercase · number · special character
-          </p>
-          <Button type="submit" className="w-full" disabled={saving}>
-            {saving ? t.changePassword.saving : t.changePassword.saveVoluntary}
-          </Button>
-        </form>
+        {form}
       </DialogContent>
     </Dialog>
   )
