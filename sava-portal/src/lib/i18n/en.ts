@@ -102,6 +102,7 @@ export const en = {
     filterDateTo: 'Uploaded to',
     filterReset: 'Reset',
     filterShowing: (n: number, total: number) => `Showing ${n} of ${total} files`,
+    filterShowingQsos: (n: number, total: number) => `Showing ${n} of ${total} QSOs`,
     activatorsCount: (n: number) => `${n} activator${n !== 1 ? 's' : ''} registered`,
     addActivator: 'Add Activator',
     addNewActivator: 'Add New Activator',

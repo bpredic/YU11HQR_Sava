@@ -104,6 +104,7 @@ export const sr: typeof en = {
     filterDateTo: 'Otpremljeno do',
     filterReset: 'Poništi',
     filterShowing: (n: number, total: number) => `Prikazano ${n} od ${total} fajlova`,
+    filterShowingQsos: (n: number, total: number) => `Prikazano ${n} od ${total} QSO-ova`,
     activatorsCount: (n: number) => `${n} aktivator${n !== 1 ? 'a' : ''} registrovan${n !== 1 ? 'o' : ''}`,
     addActivator: 'Dodaj aktivatora',
     addNewActivator: 'Dodaj novog aktivatora',

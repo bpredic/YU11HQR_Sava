@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { useT } from '@/components/TranslationsProvider'
 
 type Qso = {
@@ -29,6 +32,9 @@ function fmt(dt: string) {
 export function AdminAllQsos() {
   const [qsos, setQsos] = useState<Qso[]>([])
   const [loading, setLoading] = useState(true)
+  const [callsignFilter, setCallsignFilter] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const t = useT()
 
   useEffect(() => {
@@ -37,16 +43,99 @@ export function AdminAllQsos() {
       .then(d => { setQsos(d); setLoading(false) })
   }, [])
 
+  const callsigns = useMemo(
+    () => [...new Set(qsos.map(q => q.activatorCall))].sort(),
+    [qsos],
+  )
+
+  const filtered = useMemo(() => {
+    return qsos.filter(q => {
+      if (callsignFilter && q.activatorCall !== callsignFilter) return false
+      if (dateFrom) {
+        const from = new Date(dateFrom)
+        if (new Date(q.datetime) < from) return false
+      }
+      if (dateTo) {
+        const to = new Date(dateTo)
+        to.setHours(23, 59, 59, 999)
+        if (new Date(q.datetime) > to) return false
+      }
+      return true
+    })
+  }, [qsos, callsignFilter, dateFrom, dateTo])
+
+  const isFiltered = callsignFilter || dateFrom || dateTo
+
+  function resetFilters() {
+    setCallsignFilter('')
+    setDateFrom('')
+    setDateTo('')
+  }
+
   if (loading) return <p className="text-muted-foreground">{t.logFile.loading}</p>
 
-  const unique = qsos.filter(q => !q.isDuplicate).length
-  const dupes = qsos.filter(q => q.isDuplicate).length
+  const unique = filtered.filter(q => !q.isDuplicate).length
+  const dupes = filtered.filter(q => q.isDuplicate).length
 
   return (
     <div className="space-y-4">
+      {/* Filter bar */}
+      <Card>
+        <CardContent className="pt-4 pb-4">
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="space-y-1">
+              <Label className="text-xs">{t.admin.filterActivator}</Label>
+              <select
+                value={callsignFilter}
+                onChange={e => setCallsignFilter(e.target.value)}
+                className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm font-mono shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="">{t.admin.filterAllActivators}</option>
+                {callsigns.map(cs => (
+                  <option key={cs} value={cs}>{cs}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">{t.admin.filterDateFrom}</Label>
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={e => setDateFrom(e.target.value)}
+                className="h-9 w-40"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">{t.admin.filterDateTo}</Label>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={e => setDateTo(e.target.value)}
+                className="h-9 w-40"
+              />
+            </div>
+
+            {isFiltered && (
+              <Button variant="outline" size="sm" onClick={resetFilters} className="self-end">
+                {t.admin.filterReset}
+              </Button>
+            )}
+
+            <p className="text-sm text-muted-foreground self-end ml-auto">
+              {isFiltered
+                ? t.admin.filterShowingQsos(filtered.length, qsos.length)
+                : `${qsos.length} QSOs`}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-lg bg-muted p-3 text-center">
-          <div className="text-2xl font-bold">{qsos.length}</div>
+          <div className="text-2xl font-bold">{filtered.length}</div>
           <div className="text-xs text-muted-foreground">{t.logFile.totalQsos}</div>
         </div>
         <div className="rounded-lg bg-green-50 dark:bg-green-950 p-3 text-center">
@@ -59,6 +148,7 @@ export function AdminAllQsos() {
         </div>
       </div>
 
+      {/* Table */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{t.logFile.contacts}</CardTitle>
@@ -66,6 +156,8 @@ export function AdminAllQsos() {
         <CardContent className="overflow-x-auto">
           {qsos.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">{t.allQsos.noQsos}</p>
+          ) : filtered.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">{t.admin.filterShowingQsos(0, qsos.length)}</p>
           ) : (
             <Table>
               <TableHeader>
@@ -83,7 +175,7 @@ export function AdminAllQsos() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {qsos.map(q => (
+                {filtered.map(q => (
                   <TableRow key={q.id} className={q.isDuplicate ? 'opacity-50 bg-amber-50 dark:bg-amber-950/20' : ''}>
                     <TableCell>
                       {q.isDuplicate
