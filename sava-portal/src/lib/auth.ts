@@ -10,6 +10,7 @@ export type SessionPayload = {
   username: string
   role: 'admin' | 'activator'
   callsign?: string
+  mustChangePassword?: boolean
 }
 
 export async function createSession(payload: SessionPayload): Promise<void> {

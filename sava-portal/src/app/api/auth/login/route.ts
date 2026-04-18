@@ -37,6 +37,7 @@ export async function POST(request: Request): Promise<Response> {
         username: activator.callsign,
         role: 'activator',
         callsign: activator.callsign,
+        mustChangePassword: activator.mustChangePassword,
       }),
       prisma.activator.update({
         where: { id: activator.id },

@@ -32,6 +32,17 @@ export const en = {
     pts: 'pts',
     footer: 'Sava River Days 2026 · Amateur Radio Club YU1HQR · All rights reserved',
   },
+  changePassword: {
+    title: 'Set New Password',
+    subtitle: 'You must set a new password before continuing.',
+    newPassword: 'New Password',
+    confirmPassword: 'Confirm Password',
+    mismatch: 'Passwords do not match',
+    tooShort: 'Password must be at least 8 characters',
+    saving: 'Saving…',
+    save: 'Set Password',
+    success: 'Password updated successfully',
+  },
   login: {
     title: 'Sava River Days 2026',
     subtitle: 'Amateur Radio Contest Portal',

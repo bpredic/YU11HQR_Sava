@@ -30,7 +30,7 @@ export async function POST(
 
   await prisma.activator.update({
     where: { id: numId },
-    data: { password: hashed },
+    data: { password: hashed, mustChangePassword: true },
   })
 
   try {

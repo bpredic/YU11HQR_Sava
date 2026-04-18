@@ -34,6 +34,17 @@ export const sr: typeof en = {
     pts: 'bodova',
     footer: 'Sava River Days 2026 · Radioamaterski klub YU1HQR · Sva prava zadržana',
   },
+  changePassword: {
+    title: 'Postavi novu lozinku',
+    subtitle: 'Morate postaviti novu lozinku pre nastavka.',
+    newPassword: 'Nova lozinka',
+    confirmPassword: 'Potvrdi lozinku',
+    mismatch: 'Lozinke se ne podudaraju',
+    tooShort: 'Lozinka mora imati najmanje 8 karaktera',
+    saving: 'Čuvanje…',
+    save: 'Postavi lozinku',
+    success: 'Lozinka uspešno promenjena',
+  },
   login: {
     title: 'Sava River Days 2026',
     subtitle: 'Portal takmičenja u radioamaterizmu',
