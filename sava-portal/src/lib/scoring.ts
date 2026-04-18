@@ -81,17 +81,18 @@ export type HunterStats = {
 }
 
 export function calculateHunterStats(callsign: string, qsos: HunterQso[]): HunterStats {
-  // One QSO per activator+band+mode combination
+  // One QSO per band+mode combination — first uploaded activator for that slot scores
   const seen = new Set<string>()
   const scoredQsos: (HunterQso & { points: number })[] = []
   let totalPoints = 0
   let hasRequiredActivator = false
 
   for (const qso of qsos) {
-    const key = `${qso.activatorCall.toUpperCase()}|${qso.band}|${qso.mode}`
-    const points = seen.has(key) ? 0 : getPointsForActivator(qso.activatorCall)
+    const key = `${qso.band}|${qso.mode}`
+    const isDup = seen.has(key)
+    const points = isDup ? 0 : getPointsForActivator(qso.activatorCall)
 
-    if (!seen.has(key)) {
+    if (!isDup) {
       seen.add(key)
       totalPoints += points
       if (qso.activatorCall.toUpperCase() === REQUIRED_ACTIVATOR) {
@@ -99,7 +100,7 @@ export function calculateHunterStats(callsign: string, qsos: HunterQso[]): Hunte
       }
     }
 
-    scoredQsos.push({ ...qso, points: seen.has(key) && points === 0 ? 0 : points })
+    scoredQsos.push({ ...qso, points })
   }
 
   return {

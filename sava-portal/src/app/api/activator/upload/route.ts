@@ -91,14 +91,12 @@ export async function POST(request: Request): Promise<Response> {
     },
   })
 
-  // Collect unique calls for the bulk lookup query
-  const activatorCallSet = new Set(qsos.map(q => q.activatorCall))
+  // ONE query: all non-duplicate QSOs for any hunter in this file
+  // A hunter can only score once per band+mode regardless of activator — first uploaded wins.
   const hunterCallSet = new Set(qsos.map(q => q.hunterCall))
 
-  // ONE query to fetch all existing QSOs that could overlap with any incoming QSO
   const existingQsos = await prisma.qso.findMany({
     where: {
-      activatorCall: { in: [...activatorCallSet] },
       hunterCall: { in: [...hunterCallSet] },
       logFileId: { not: logFile.id },
       isDuplicate: false,
@@ -109,7 +107,6 @@ export async function POST(request: Request): Promise<Response> {
       hunterCall: true,
       band: true,
       mode: true,
-      datetime: true,
       logFile: {
         select: {
           filename: true,
@@ -120,50 +117,35 @@ export async function POST(request: Request): Promise<Response> {
     },
   })
 
-  // Build in-memory map: "activatorCall|hunterCall|band|mode" → [{id, datetimeMs, meta}]
+  // Map: "hunterCall|band|mode" → first existing entry (first uploaded wins)
   type MapEntry = {
     id: number
-    datetimeMs: number
     filename?: string
     uploadedAt?: Date
     activatorCall?: string
   }
-  const existingMap = new Map<string, MapEntry[]>()
+  const existingMap = new Map<string, MapEntry>()
 
   for (const eq of existingQsos) {
-    const key = `${eq.activatorCall}|${eq.hunterCall}|${eq.band}|${eq.mode}`
-    const arr = existingMap.get(key) ?? []
-    arr.push({
-      id: eq.id,
-      datetimeMs: eq.datetime.getTime(),
-      filename: eq.logFile.filename,
-      uploadedAt: eq.logFile.uploadedAt,
-      activatorCall: eq.logFile.activator.callsign,
-    })
-    existingMap.set(key, arr)
+    const key = `${eq.hunterCall}|${eq.band}|${eq.mode}`
+    if (!existingMap.has(key)) {
+      existingMap.set(key, {
+        id: eq.id,
+        filename: eq.logFile.filename,
+        uploadedAt: eq.logFile.uploadedAt,
+        activatorCall: eq.logFile.activator.callsign,
+      })
+    }
   }
 
-  const WINDOW_MS = 5 * 60 * 1000
   const toInsert: QsoRow[] = []
   const duplicates: DuplicateSummary[] = []
   let newCount = 0
   let dupCount = 0
 
   for (const qso of qsos) {
-    const key = `${qso.activatorCall}|${qso.hunterCall}|${qso.band}|${qso.mode}`
-    const qsoMs = qso.datetime.getTime()
-
-    const entries = existingMap.get(key)
-    let matchEntry: MapEntry | undefined
-
-    if (entries) {
-      for (const entry of entries) {
-        if (Math.abs(entry.datetimeMs - qsoMs) <= WINDOW_MS) {
-          matchEntry = entry
-          break
-        }
-      }
-    }
+    const key = `${qso.hunterCall}|${qso.band}|${qso.mode}`
+    const matchEntry = existingMap.get(key)
 
     if (matchEntry) {
       dupCount++
@@ -194,11 +176,8 @@ export async function POST(request: Request): Promise<Response> {
       })
     } else {
       newCount++
-      // Add to in-memory map so later QSOs in the same file can detect this as a duplicate
-      // Use id=0 as sentinel for "not yet in DB but accepted in this batch"
-      const arr = existingMap.get(key) ?? []
-      arr.push({ id: 0, datetimeMs: qsoMs })
-      existingMap.set(key, arr)
+      // Claim this hunter|band|mode slot so later QSOs in the same file are duplicates
+      existingMap.set(key, { id: 0 })
       toInsert.push({
         logFileId: logFile.id,
         activatorCall: qso.activatorCall,
