@@ -231,7 +231,7 @@ export function AdminActivators() {
                       {new Date(s.loggedInAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'medium' })}
                     </TableCell>
                     <TableCell className="text-sm font-mono text-muted-foreground">
-                      {s.ipAddress ?? '—'}
+                      {s.ipAddress ? s.ipAddress.replace(/^::ffff:/i, '') : '—'}
                     </TableCell>
                   </TableRow>
                 ))}

@@ -160,16 +160,18 @@ export function SiteHeader({ user }: Props) {
 
                 {user?.role === 'admin' && (
                   <>
-                    <DropdownMenuLabel>{t.nav.adminPanel}</DropdownMenuLabel>
-                    <DropdownMenuItem render={<Link href="/admin" />}>
-                      {t.nav.adminPanel}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem render={<Link href="/admin/logs" />}>
-                      {t.admin.allLogFiles}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem render={<Link href="/admin/qsos" />}>
-                      {t.admin.allQsos}
-                    </DropdownMenuItem>
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel>{t.nav.adminPanel}</DropdownMenuLabel>
+                      <DropdownMenuItem render={<Link href="/admin" />}>
+                        {t.nav.adminPanel}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem render={<Link href="/admin/logs" />}>
+                        {t.admin.allLogFiles}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem render={<Link href="/admin/qsos" />}>
+                        {t.admin.allQsos}
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={() => setCpOpen(true)}>
                       <KeyRoundIcon className="size-4" />
@@ -184,16 +186,18 @@ export function SiteHeader({ user }: Props) {
 
                 {user?.role === 'activator' && (
                   <>
-                    <DropdownMenuLabel className="font-mono">{user.callsign}</DropdownMenuLabel>
-                    <DropdownMenuItem render={<Link href="/activator" />}>
-                      {t.nav.myLogs}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem render={<Link href="/activator/upload" />}>
-                      {t.nav.upload}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem render={<Link href="/activator/qsos" />}>
-                      {t.nav.allQsos}
-                    </DropdownMenuItem>
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel className="font-mono">{user.callsign}</DropdownMenuLabel>
+                      <DropdownMenuItem render={<Link href="/activator" />}>
+                        {t.nav.myLogs}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem render={<Link href="/activator/upload" />}>
+                        {t.nav.upload}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem render={<Link href="/activator/qsos" />}>
+                        {t.nav.allQsos}
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={() => setCpOpen(true)}>
                       <KeyRoundIcon className="size-4" />
