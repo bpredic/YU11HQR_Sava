@@ -34,10 +34,16 @@ export function AdminActivators() {
   const t = useT()
 
   const fetchActivators = useCallback(async () => {
-    const res = await fetch('/api/admin/activators')
-    const data = await res.json()
-    setActivators(data)
-    setLoading(false)
+    try {
+      const res = await fetch('/api/admin/activators')
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = await res.json()
+      setActivators(data)
+    } catch (err) {
+      toast.error(`Failed to load activators: ${err instanceof Error ? err.message : err}`)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => { fetchActivators() }, [fetchActivators])
