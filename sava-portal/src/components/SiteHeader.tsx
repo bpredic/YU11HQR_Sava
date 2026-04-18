@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { ChangePasswordDialog } from '@/components/ChangePasswordDialog'
 import type { SessionPayload } from '@/lib/auth'
 import { useT, useLocale } from '@/components/TranslationsProvider'
 import { setLocale } from '@/app/actions/locale'
@@ -94,6 +95,7 @@ export function SiteHeader({ user }: Props) {
                     {t.admin.allQsos}
                   </Button>
                 </Link>
+                <ChangePasswordDialog role="admin" triggerClassName="text-white hover:bg-white/20 hover:text-white" />
                 <Button onClick={handleLogout} variant="outline" className="border-white/30 text-white bg-white/10 hover:bg-white/20 hover:text-white">
                   {t.nav.logout}
                 </Button>
@@ -117,6 +119,7 @@ export function SiteHeader({ user }: Props) {
                   </Button>
                 </Link>
                 <span className="text-sky-200 text-sm font-medium px-2">{user.callsign}</span>
+                <ChangePasswordDialog role="activator" triggerClassName="text-white hover:bg-white/20 hover:text-white" />
                 <Button onClick={handleLogout} variant="outline" className="border-white/30 text-white bg-white/10 hover:bg-white/20 hover:text-white">
                   {t.nav.logout}
                 </Button>

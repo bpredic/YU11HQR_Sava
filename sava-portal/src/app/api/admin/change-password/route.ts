@@ -5,13 +5,13 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 
 const schema = z.object({
-  currentPassword: z.string(),
+  currentPassword: z.string().min(1),
   password: z.string().min(1),
 })
 
 export async function POST(request: Request): Promise<Response> {
   const session = await getSession()
-  if (!session || session.role !== 'activator') {
+  if (!session || session.role !== 'admin') {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -24,27 +24,19 @@ export async function POST(request: Request): Promise<Response> {
   const error = validatePassword(parsed.data.password)
   if (error) return Response.json({ error }, { status: 400 })
 
-  const activator = await prisma.activator.findUnique({ where: { id: session.id } })
-  if (!activator) return Response.json({ error: 'Not found' }, { status: 404 })
+  const user = await prisma.user.findUnique({ where: { id: session.id } })
+  if (!user) return Response.json({ error: 'Not found' }, { status: 404 })
 
-  if (!session.mustChangePassword) {
-    const currentOk = await bcrypt.compare(parsed.data.currentPassword, activator.password)
-    if (!currentOk) return Response.json({ error: 'wrongCurrent' }, { status: 400 })
-  }
+  const currentOk = await bcrypt.compare(parsed.data.currentPassword, user.password)
+  if (!currentOk) return Response.json({ error: 'wrongCurrent' }, { status: 400 })
 
   const hashed = await bcrypt.hash(parsed.data.password, 12)
-  await prisma.activator.update({
+  await prisma.user.update({
     where: { id: session.id },
-    data: { password: hashed, mustChangePassword: false },
+    data: { password: hashed },
   })
 
-  await createSession({
-    id: session.id,
-    username: session.username,
-    role: 'activator',
-    callsign: session.callsign,
-    mustChangePassword: false,
-  })
+  await createSession({ id: session.id, username: session.username, role: 'admin' })
 
   return Response.json({ ok: true })
 }
