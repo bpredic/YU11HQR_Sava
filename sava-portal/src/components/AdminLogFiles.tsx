@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { useT } from '@/components/TranslationsProvider'
 
 type LogFile = {
@@ -27,6 +29,9 @@ function fmt(dt: string | null) {
 export function AdminLogFiles() {
   const [logs, setLogs] = useState<LogFile[]>([])
   const [loading, setLoading] = useState(true)
+  const [callsignFilter, setCallsignFilter] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const t = useT()
 
   useEffect(() => {
@@ -35,17 +40,100 @@ export function AdminLogFiles() {
       .then(d => { setLogs(d); setLoading(false) })
   }, [])
 
+  const callsigns = useMemo(
+    () => [...new Set(logs.map(l => l.activator.callsign))].sort(),
+    [logs],
+  )
+
+  const filtered = useMemo(() => {
+    return logs.filter(l => {
+      if (callsignFilter && l.activator.callsign !== callsignFilter) return false
+      if (dateFrom) {
+        const from = new Date(dateFrom)
+        if (new Date(l.uploadedAt) < from) return false
+      }
+      if (dateTo) {
+        const to = new Date(dateTo)
+        to.setHours(23, 59, 59, 999)
+        if (new Date(l.uploadedAt) > to) return false
+      }
+      return true
+    })
+  }, [logs, callsignFilter, dateFrom, dateTo])
+
+  const isFiltered = callsignFilter || dateFrom || dateTo
+
+  function resetFilters() {
+    setCallsignFilter('')
+    setDateFrom('')
+    setDateTo('')
+  }
+
   if (loading) return <p className="text-muted-foreground">{t.dashboard.loading}</p>
 
   return (
     <div className="space-y-4">
-      <p className="text-muted-foreground text-sm">{t.dashboard.filesUploaded(logs.length)}</p>
+      {/* Filter bar */}
+      <Card>
+        <CardContent className="pt-4 pb-4">
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="space-y-1">
+              <Label className="text-xs">{t.admin.filterActivator}</Label>
+              <select
+                value={callsignFilter}
+                onChange={e => setCallsignFilter(e.target.value)}
+                className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm font-mono shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="">{t.admin.filterAllActivators}</option>
+                {callsigns.map(cs => (
+                  <option key={cs} value={cs}>{cs}</option>
+                ))}
+              </select>
+            </div>
 
+            <div className="space-y-1">
+              <Label className="text-xs">{t.admin.filterDateFrom}</Label>
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={e => setDateFrom(e.target.value)}
+                className="h-9 w-40"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">{t.admin.filterDateTo}</Label>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={e => setDateTo(e.target.value)}
+                className="h-9 w-40"
+              />
+            </div>
+
+            {isFiltered && (
+              <Button variant="outline" size="sm" onClick={resetFilters} className="self-end">
+                {t.admin.filterReset}
+              </Button>
+            )}
+
+            <p className="text-sm text-muted-foreground self-end ml-auto">
+              {isFiltered
+                ? t.admin.filterShowing(filtered.length, logs.length)
+                : t.dashboard.filesUploaded(logs.length)}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Table */}
       <Card>
         <CardHeader><CardTitle className="text-base">{t.admin.allLogFiles}</CardTitle></CardHeader>
         <CardContent>
           {logs.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">{t.dashboard.noFiles}</p>
+          ) : filtered.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">{t.admin.filterShowing(0, logs.length)}</p>
           ) : (
             <Table>
               <TableHeader>
@@ -61,7 +149,7 @@ export function AdminLogFiles() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {logs.map(l => (
+                {filtered.map(l => (
                   <TableRow key={l.id}>
                     <TableCell>
                       <Badge variant="secondary" className="font-mono">{l.activator.callsign}</Badge>
