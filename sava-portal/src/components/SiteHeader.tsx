@@ -120,6 +120,9 @@ export function SiteHeader({ user }: Props) {
                 <Link href="/activator/qsos">
                   <Button variant="ghost" className="text-white hover:bg-white/20 hover:text-white">{t.nav.allQsos}</Button>
                 </Link>
+                <Link href="/activator/activity">
+                  <Button variant="ghost" className="text-white hover:bg-white/20 hover:text-white">{t.nav.activity}</Button>
+                </Link>
                 <span className="text-sky-200 text-sm font-medium px-2">{user.callsign}</span>
                 <ChangePasswordDialog role="activator" triggerClassName="text-white hover:bg-white/20 hover:text-white" />
                 <Button onClick={handleLogout} variant="outline" className="border-white/30 text-white bg-white/10 hover:bg-white/20 hover:text-white">
@@ -197,6 +200,9 @@ export function SiteHeader({ user }: Props) {
                       </DropdownMenuItem>
                       <DropdownMenuItem render={<Link href="/activator/qsos" />}>
                         {t.nav.allQsos}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem render={<Link href="/activator/activity" />}>
+                        {t.nav.activity}
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />

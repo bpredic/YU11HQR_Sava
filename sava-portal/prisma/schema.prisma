@@ -23,8 +23,9 @@ model Activator {
   createdAt     DateTime       @default(now())
   lastLoginAt         DateTime?
   mustChangePassword  Boolean   @default(true)
-  logFiles            LogFile[]
-  loginSessions LoginSession[]
+  logFiles         LogFile[]
+  loginSessions    LoginSession[]
+  activityPeriods  ActivityPeriod[]
 }
 
 model LoginSession {
@@ -48,6 +49,20 @@ model LogFile {
   firstQsoAt   DateTime?
   lastQsoAt    DateTime?
   qsos         Qso[]
+}
+
+model ActivityPeriod {
+  id          Int       @id @default(autoincrement())
+  activatorId Int
+  activator   Activator @relation(fields: [activatorId], references: [id], onDelete: Cascade)
+  startAt     DateTime
+  endAt       DateTime
+  band        String
+  frequency   Int
+  mode        String
+  createdAt   DateTime  @default(now())
+
+  @@index([activatorId])
 }
 
 model Qso {
