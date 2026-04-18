@@ -174,11 +174,11 @@ export function SiteHeader({ user }: Props) {
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={() => setCpOpen(true)}>
+                    <DropdownMenuItem onClick={() => setCpOpen(true)}>
                       <KeyRoundIcon className="size-4" />
                       {t.changePassword.changePasswordNav}
                     </DropdownMenuItem>
-                    <DropdownMenuItem variant="destructive" onSelect={handleLogout}>
+                    <DropdownMenuItem variant="destructive" onClick={handleLogout}>
                       <LogOutIcon className="size-4" />
                       {t.nav.logout}
                     </DropdownMenuItem>
@@ -200,11 +200,11 @@ export function SiteHeader({ user }: Props) {
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={() => setCpOpen(true)}>
+                    <DropdownMenuItem onClick={() => setCpOpen(true)}>
                       <KeyRoundIcon className="size-4" />
                       {t.changePassword.changePasswordNav}
                     </DropdownMenuItem>
-                    <DropdownMenuItem variant="destructive" onSelect={handleLogout}>
+                    <DropdownMenuItem variant="destructive" onClick={handleLogout}>
                       <LogOutIcon className="size-4" />
                       {t.nav.logout}
                     </DropdownMenuItem>
