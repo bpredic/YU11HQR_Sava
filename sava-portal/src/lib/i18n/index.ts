@@ -8,5 +8,5 @@ export type { Translations } from './translations'
 export async function getLocale(): Promise<Locale> {
   const cookieStore = await cookies()
   const l = cookieStore.get('locale')?.value
-  return l === 'sr' ? 'sr' : 'en'
+  return l === 'en' ? 'en' : 'sr'
 }

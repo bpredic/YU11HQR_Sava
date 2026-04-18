@@ -90,4 +90,4 @@ The repository contains example Cabrillo and ADIF data files in `LogFiles/`. The
 
 Default admin credentials (from seed): `admin` / `admin123` — change in `.env` before production use.
 Created activator YU1BPC bpredic@gmail.com password gqkzbUujGE a na produkciji je 3JR6uwMNgj
-
+NBa produkciji aktivator YU1RDX password LHCnDzwK2M

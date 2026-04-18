@@ -142,6 +142,9 @@ export const en = {
     createFailed: 'Failed to create activator',
     deleteFailed: 'Failed to delete activator',
     resetFailed: 'Failed to reset password',
+    loginSessionsTitle: (cs: string) => `Login Sessions — ${cs}`,
+    loginSessionsEmpty: 'No login sessions recorded.',
+    loginSessionsLoading: 'Loading…',
   },
   allQsos: {
     loading: 'Loading…',

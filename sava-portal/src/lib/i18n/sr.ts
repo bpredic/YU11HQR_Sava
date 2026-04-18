@@ -144,6 +144,9 @@ export const sr: typeof en = {
     createFailed: 'Greška pri kreiranju aktivatora',
     deleteFailed: 'Greška pri brisanju aktivatora',
     resetFailed: 'Greška pri resetovanju lozinke',
+    loginSessionsTitle: (cs: string) => `Sesije prijave — ${cs}`,
+    loginSessionsEmpty: 'Nema zabeleženih sesija prijave.',
+    loginSessionsLoading: 'Učitavanje…',
   },
   allQsos: {
     loading: 'Učitavanje…',

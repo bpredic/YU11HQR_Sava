@@ -20,10 +20,18 @@ type Activator = {
   lastLoginAt: string | null
 }
 
+type LoginSession = {
+  id: number
+  loggedInAt: string
+}
+
 export function AdminActivators() {
   const [activators, setActivators] = useState<Activator[]>([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
+  const [sessionsDialog, setSessionsDialog] = useState<{ activator: Activator | null; sessions: LoginSession[]; loading: boolean }>({
+    activator: null, sessions: [], loading: false,
+  })
   const [callsign, setCallsign] = useState('')
   const [email, setEmail] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -96,6 +104,19 @@ export function AdminActivators() {
       setResetState({ id, password: data.tempPassword, resetting: null })
     } finally {
       setResetState(s => ({ ...s, resetting: null }))
+    }
+  }
+
+  async function openSessions(a: Activator) {
+    setSessionsDialog({ activator: a, sessions: [], loading: true })
+    try {
+      const res = await fetch(`/api/admin/activators/${a.id}/login-sessions`)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = await res.json()
+      setSessionsDialog(s => ({ ...s, sessions: data, loading: false }))
+    } catch {
+      setSessionsDialog(s => ({ ...s, loading: false }))
+      toast.error('Failed to load login sessions')
     }
   }
 
@@ -177,6 +198,44 @@ export function AdminActivators() {
         </DialogContent>
       </Dialog>
 
+      {/* Login sessions dialog */}
+      <Dialog
+        open={sessionsDialog.activator !== null}
+        onOpenChange={v => { if (!v) setSessionsDialog({ activator: null, sessions: [], loading: false }) }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {sessionsDialog.activator ? t.admin.loginSessionsTitle(sessionsDialog.activator.callsign) : ''}
+            </DialogTitle>
+          </DialogHeader>
+          {sessionsDialog.loading ? (
+            <p className="text-sm text-muted-foreground">{t.admin.loginSessionsLoading}</p>
+          ) : sessionsDialog.sessions.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">{t.admin.loginSessionsEmpty}</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>#</TableHead>
+                  <TableHead>{t.admin.colLastLogin}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sessionsDialog.sessions.map((s, i) => (
+                  <TableRow key={s.id}>
+                    <TableCell className="text-muted-foreground text-sm">{i + 1}</TableCell>
+                    <TableCell className="text-sm font-mono">
+                      {new Date(s.loggedInAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'medium' })}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{t.admin.registeredActivators}</CardTitle>
@@ -201,7 +260,9 @@ export function AdminActivators() {
                 {activators.map(a => (
                   <TableRow key={a.id}>
                     <TableCell>
-                      <Badge variant="secondary" className="font-mono">{a.callsign}</Badge>
+                      <button onClick={() => openSessions(a)} className="cursor-pointer">
+                        <Badge variant="secondary" className="font-mono hover:bg-secondary/80 transition-colors">{a.callsign}</Badge>
+                      </button>
                     </TableCell>
                     <TableCell className="text-sm">{a.email}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">

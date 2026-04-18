@@ -27,6 +27,7 @@ export async function POST(request: Request): Promise<Response> {
   // Try activator (username = callsign)
   const activator = await prisma.activator.findUnique({ where: { callsign: username.toUpperCase() } })
   if (activator && await bcrypt.compare(password, activator.password)) {
+    const now = new Date()
     await Promise.all([
       createSession({
         id: activator.id,
@@ -36,7 +37,10 @@ export async function POST(request: Request): Promise<Response> {
       }),
       prisma.activator.update({
         where: { id: activator.id },
-        data: { lastLoginAt: new Date() },
+        data: { lastLoginAt: now },
+      }),
+      prisma.loginSession.create({
+        data: { activatorId: activator.id, loggedInAt: now },
       }),
     ])
     return Response.json({ role: 'activator' })

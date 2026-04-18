@@ -16,13 +16,23 @@ model User {
 }
 
 model Activator {
+  id            Int            @id @default(autoincrement())
+  callsign      String         @unique
+  email         String         @unique
+  password      String
+  createdAt     DateTime       @default(now())
+  lastLoginAt   DateTime?
+  logFiles      LogFile[]
+  loginSessions LoginSession[]
+}
+
+model LoginSession {
   id          Int       @id @default(autoincrement())
-  callsign    String    @unique
-  email       String    @unique
-  password    String
-  createdAt   DateTime  @default(now())
-  lastLoginAt DateTime?
-  logFiles    LogFile[]
+  activatorId Int
+  activator   Activator @relation(fields: [activatorId], references: [id], onDelete: Cascade)
+  loggedInAt  DateTime  @default(now())
+
+  @@index([activatorId])
 }
 
 model LogFile {

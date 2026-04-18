@@ -23,7 +23,9 @@
       "Bash(npx tsc:*)",
       "Bash(taskkill:*)",
       "Bash(cmd:*)",
-      "Bash(echo \"exit: $?\")"
+      "Bash(echo \"exit: $?\")",
+      "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(e\\) for e in data if 'error' in str\\(e\\).lower\\(\\) or '500' in str\\(e\\)]\")",
+      "Bash(cat \"C:\\\\Users\\\\user\\\\Projects\\\\YU1HQR_Sava\\\\sava-portal\\\\.next\\\\dev\\\\logs\"/*)"
     ]
   }
 }
