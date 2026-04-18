@@ -17,6 +17,7 @@ type Activator = {
   callsign: string
   email: string
   createdAt: string
+  lastLoginAt: string | null
 }
 
 export function AdminActivators() {
@@ -186,6 +187,7 @@ export function AdminActivators() {
                   <TableHead>{t.admin.colCallsign}</TableHead>
                   <TableHead>{t.admin.colEmail}</TableHead>
                   <TableHead>{t.admin.colCreated}</TableHead>
+                  <TableHead>{t.admin.colLastLogin}</TableHead>
                   <TableHead className="text-right">{t.admin.colActions}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -198,6 +200,11 @@ export function AdminActivators() {
                     <TableCell className="text-sm">{a.email}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {new Date(a.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {a.lastLoginAt
+                        ? new Date(a.lastLoginAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
+                        : '—'}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">

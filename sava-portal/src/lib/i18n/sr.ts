@@ -130,6 +130,7 @@ export const sr: typeof en = {
     colCallsign: 'Pozivni znak',
     colEmail: 'Email',
     colCreated: 'Kreiran',
+    colLastLogin: 'Poslednja prijava',
     colActions: 'Akcije',
     resetting: 'Resetovanje…',
     resetPassword: 'Resetuj lozinku',

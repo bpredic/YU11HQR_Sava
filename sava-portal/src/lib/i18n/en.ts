@@ -128,6 +128,7 @@ export const en = {
     colCallsign: 'Callsign',
     colEmail: 'Email',
     colCreated: 'Created',
+    colLastLogin: 'Last Login',
     colActions: 'Actions',
     resetting: 'Resetting…',
     resetPassword: 'Reset Password',

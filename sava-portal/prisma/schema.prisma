@@ -16,12 +16,13 @@ model User {
 }
 
 model Activator {
-  id        Int       @id @default(autoincrement())
-  callsign  String    @unique
-  email     String    @unique
-  password  String
-  createdAt DateTime  @default(now())
-  logFiles  LogFile[]
+  id          Int       @id @default(autoincrement())
+  callsign    String    @unique
+  email       String    @unique
+  password    String
+  createdAt   DateTime  @default(now())
+  lastLoginAt DateTime?
+  logFiles    LogFile[]
 }
 
 model LogFile {

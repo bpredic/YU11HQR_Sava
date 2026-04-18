@@ -16,7 +16,7 @@ export async function GET(): Promise<Response> {
   }
 
   const activators = await prisma.activator.findMany({
-    select: { id: true, callsign: true, email: true, createdAt: true },
+    select: { id: true, callsign: true, email: true, createdAt: true, lastLoginAt: true },
     orderBy: { callsign: 'asc' },
   })
   return Response.json(activators)
