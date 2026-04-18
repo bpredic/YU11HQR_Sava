@@ -23,31 +23,10 @@ export async function GET(
     return Response.json({ error: 'Not found' }, { status: 404 })
   }
 
-  // Get all QSOs from this file with cross-reference confirmation status
   const qsos = await prisma.qso.findMany({
     where: { logFileId },
     orderBy: { datetime: 'asc' },
   })
 
-  // For each QSO from this activator, check if the hunter uploaded a matching QSO
-  // (cross-reference: hunter log with activatorCall == hunterCall and vice versa)
-  const enriched = await Promise.all(qsos.map(async (qso) => {
-    // Look for a matching QSO from the other side (hunter confirming)
-    const confirmed = await prisma.qso.findFirst({
-      where: {
-        activatorCall: qso.hunterCall,
-        hunterCall: qso.activatorCall,
-        band: qso.band,
-        mode: qso.mode,
-        datetime: {
-          gte: new Date(qso.datetime.getTime() - 10 * 60 * 1000),
-          lte: new Date(qso.datetime.getTime() + 10 * 60 * 1000),
-        },
-        logFileId: { not: logFileId },
-      },
-    })
-    return { ...qso, confirmed: !!confirmed }
-  }))
-
-  return Response.json({ logFile, qsos: enriched })
+  return Response.json({ logFile, qsos })
 }
