@@ -91,31 +91,41 @@ export async function POST(request: Request): Promise<Response> {
     },
   })
 
-  // ONE query: all non-duplicate QSOs for any hunter in this file
+  // Fetch existing QSOs for duplicate detection.
   // A hunter can only score once per band+mode regardless of activator — first uploaded wins.
-  const hunterCallSet = new Set(qsos.map(q => q.hunterCall))
+  // Chunk hunter callsigns to stay within SQLite's variable limit (999).
+  const hunterCallArray = [...new Set(qsos.map(q => q.hunterCall))]
+  const HUNTER_CHUNK = 500
 
-  const existingQsos = await prisma.qso.findMany({
-    where: {
-      hunterCall: { in: [...hunterCallSet] },
-      logFileId: { not: logFile.id },
-      isDuplicate: false,
-    },
-    select: {
-      id: true,
-      activatorCall: true,
-      hunterCall: true,
-      band: true,
-      mode: true,
-      logFile: {
-        select: {
-          filename: true,
-          uploadedAt: true,
-          activator: { select: { callsign: true } },
-        },
+  const existingQsoSelect = {
+    id: true,
+    activatorCall: true,
+    hunterCall: true,
+    band: true,
+    mode: true,
+    logFile: {
+      select: {
+        filename: true,
+        uploadedAt: true,
+        activator: { select: { callsign: true } },
       },
     },
-  })
+  } as const
+
+  const existingQsosChunks = await Promise.all(
+    Array.from(
+      { length: Math.ceil(hunterCallArray.length / HUNTER_CHUNK) },
+      (_, i) => prisma.qso.findMany({
+        where: {
+          hunterCall: { in: hunterCallArray.slice(i * HUNTER_CHUNK, (i + 1) * HUNTER_CHUNK) },
+          logFileId: { not: logFile.id },
+          isDuplicate: false,
+        },
+        select: existingQsoSelect,
+      }),
+    ),
+  )
+  const existingQsos = existingQsosChunks.flat()
 
   // Map: "hunterCall|band|mode" → first existing entry (first uploaded wins)
   type MapEntry = {
