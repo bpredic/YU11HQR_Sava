@@ -162,8 +162,8 @@ export function HunterStats({ callsign }: { callsign: string }) {
           <CardHeader>
             <CardTitle className="text-base">{t.hunter.qsosFound}</CardTitle>
           </CardHeader>
-          <CardContent className="overflow-x-auto">
-            <Table>
+          <CardContent>
+            <Table containerClassName="max-h-[600px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>{t.hunter.colActivator}</TableHead>

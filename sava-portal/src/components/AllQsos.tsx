@@ -57,12 +57,12 @@ export function AllQsos() {
         <CardHeader>
           <CardTitle className="text-base">{t.allQsos.qsoLog}</CardTitle>
         </CardHeader>
-        <CardContent className="overflow-x-auto">
+        <CardContent>
           {qsos.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">{t.allQsos.noQsos}</p>
           ) : (
             <>
-              <Table>
+              <Table containerClassName="max-h-[600px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t.allQsos.colStatus}</TableHead>

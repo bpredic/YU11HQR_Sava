@@ -159,14 +159,14 @@ export function AdminAllQsos() {
         <CardHeader>
           <CardTitle className="text-base">{t.logFile.contacts}</CardTitle>
         </CardHeader>
-        <CardContent className="overflow-x-auto">
+        <CardContent>
           {qsos.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">{t.allQsos.noQsos}</p>
           ) : filtered.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">{t.admin.filterShowingQsos(0, qsos.length)}</p>
           ) : (
             <>
-              <Table>
+              <Table containerClassName="max-h-[600px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t.logFile.colStatus}</TableHead>

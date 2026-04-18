@@ -94,8 +94,8 @@ export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId:
         <CardHeader>
           <CardTitle className="text-base">{t.logFile.contacts}</CardTitle>
         </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <Table>
+        <CardContent>
+          <Table containerClassName="max-h-[600px]">
             <TableHeader>
               <TableRow>
                 <TableHead>{t.logFile.colStatus}</TableHead>
