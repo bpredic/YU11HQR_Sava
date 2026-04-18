@@ -7,20 +7,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useT } from '@/components/TranslationsProvider'
 import { Spinner } from '@/components/ui/spinner'
-
-type DuplicateEntry = {
-  activatorCall: string
-  hunterCall: string
-  band: string
-  mode: string
-  datetime: string
-  existingActivatorCall: string
-  existingFilename: string
-  existingUploadedAt: string
-}
 
 type UploadResult = {
   logFileId: number
@@ -29,7 +17,8 @@ type UploadResult = {
   totalQsos: number
   newQsos: number
   duplicateQsos: number
-  duplicates: DuplicateEntry[]
+  firstQsoAt: string
+  lastQsoAt: string
   parseErrors: string[]
 }
 
@@ -144,44 +133,16 @@ export function UploadForm() {
               </div>
             </div>
 
-            {result.duplicates.length > 0 && (
+            <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <h3 className="font-semibold text-sm mb-2">{t.upload.duplicateQsos}</h3>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{t.upload.colHunter}</TableHead>
-                        <TableHead>{t.upload.colBand}</TableHead>
-                        <TableHead>{t.upload.colMode}</TableHead>
-                        <TableHead>{t.upload.colDateTime}</TableHead>
-                        <TableHead>{t.upload.colExistingIn}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {result.duplicates.map((d, i) => (
-                        <TableRow key={i} className="text-sm">
-                          <TableCell className="font-mono">{d.hunterCall}</TableCell>
-                          <TableCell>{d.band}</TableCell>
-                          <TableCell>{d.mode}</TableCell>
-                          <TableCell>{new Date(d.datetime).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}</TableCell>
-                          <TableCell className="font-mono text-xs">{d.existingFilename}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                <span className="text-muted-foreground">{t.upload.firstQso}: </span>
+                <span className="font-mono">{new Date(result.firstQsoAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'medium' })}</span>
               </div>
-            )}
-
-            {result.parseErrors.length > 0 && (
               <div>
-                <h3 className="font-semibold text-sm mb-2 text-amber-600">{t.upload.parseWarnings}</h3>
-                <ul className="text-xs text-muted-foreground space-y-1">
-                  {result.parseErrors.map((e, i) => <li key={i}>• {e}</li>)}
-                </ul>
+                <span className="text-muted-foreground">{t.upload.lastQso}: </span>
+                <span className="font-mono">{new Date(result.lastQsoAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'medium' })}</span>
               </div>
-            )}
+            </div>
           </CardContent>
         </Card>
       )}
