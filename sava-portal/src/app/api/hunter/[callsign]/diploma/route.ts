@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { prisma } from '@/lib/db'
+import { getSession } from '@/lib/auth'
 import { calculateHunterStats } from '@/lib/scoring'
 import type { HunterQso } from '@/lib/scoring'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
@@ -9,6 +10,9 @@ export async function GET(
   _req: Request,
   ctx: RouteContext<'/api/hunter/[callsign]/diploma'>
 ): Promise<Response> {
+  const session = await getSession()
+  const isAdmin = session?.role === 'admin'
+
   const { callsign } = await ctx.params
   const upperCall = callsign.toUpperCase()
 
@@ -33,7 +37,7 @@ export async function GET(
 
   const stats = calculateHunterStats(upperCall, hunterQsos)
 
-  if (!stats.qualifiesForDiploma) {
+  if (!stats.qualifiesForDiploma && !isAdmin) {
     return Response.json({ error: 'Does not qualify for diploma' }, { status: 403 })
   }
 

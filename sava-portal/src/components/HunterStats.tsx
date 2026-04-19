@@ -37,7 +37,7 @@ function fmt(dt: string) {
   return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
 }
 
-export function HunterStats({ callsign }: { callsign: string }) {
+export function HunterStats({ callsign, isAdmin = false }: { callsign: string; isAdmin?: boolean }) {
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
@@ -98,7 +98,7 @@ export function HunterStats({ callsign }: { callsign: string }) {
         </div>
         <div className="flex items-center gap-2">
           <Link href="/hunter"><Button variant="outline" size="sm">{t.hunter.newSearch}</Button></Link>
-          {stats.qualifiesForDiploma && (
+          {(stats.qualifiesForDiploma || isAdmin) && (
             <Button
               onClick={downloadDiploma}
               disabled={downloading}
