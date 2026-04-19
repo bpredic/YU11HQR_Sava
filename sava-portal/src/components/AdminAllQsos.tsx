@@ -35,6 +35,9 @@ export function AdminAllQsos() {
   const [qsos, setQsos] = useState<Qso[]>([])
   const [loading, setLoading] = useState(true)
   const [callsignFilter, setCallsignFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [bandFilter, setBandFilter] = useState('')
+  const [modeFilter, setModeFilter] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [page, setPage] = useState(1)
@@ -51,14 +54,17 @@ export function AdminAllQsos() {
     () => [...new Set(qsos.map(q => q.activatorCall))].sort(),
     [qsos],
   )
+  const bands = useMemo(() => [...new Set(qsos.map(q => q.band))].sort(), [qsos])
+  const modes = useMemo(() => [...new Set(qsos.map(q => q.mode))].sort(), [qsos])
 
   const filtered = useMemo(() => {
     return qsos.filter(q => {
       if (callsignFilter && q.activatorCall !== callsignFilter) return false
-      if (dateFrom) {
-        const from = new Date(dateFrom)
-        if (new Date(q.datetime) < from) return false
-      }
+      if (statusFilter === 'ok' && q.isDuplicate) return false
+      if (statusFilter === 'dup' && !q.isDuplicate) return false
+      if (bandFilter && q.band !== bandFilter) return false
+      if (modeFilter && q.mode !== modeFilter) return false
+      if (dateFrom && new Date(q.datetime) < new Date(dateFrom)) return false
       if (dateTo) {
         const to = new Date(dateTo)
         to.setHours(23, 59, 59, 999)
@@ -66,12 +72,15 @@ export function AdminAllQsos() {
       }
       return true
     })
-  }, [qsos, callsignFilter, dateFrom, dateTo])
+  }, [qsos, callsignFilter, statusFilter, bandFilter, modeFilter, dateFrom, dateTo])
 
-  const isFiltered = callsignFilter || dateFrom || dateTo
+  const isFiltered = callsignFilter || statusFilter || bandFilter || modeFilter || dateFrom || dateTo
 
   function resetFilters() {
     setCallsignFilter('')
+    setStatusFilter('')
+    setBandFilter('')
+    setModeFilter('')
     setDateFrom('')
     setDateTo('')
     setPage(1)
@@ -100,6 +109,43 @@ export function AdminAllQsos() {
                 {callsigns.map(cs => (
                   <option key={cs} value={cs}>{cs}</option>
                 ))}
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">{t.allQsos.filterStatus}</Label>
+              <select
+                value={statusFilter}
+                onChange={e => { setStatusFilter(e.target.value); setPage(1) }}
+                className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="">{t.allQsos.filterAllStatuses}</option>
+                <option value="ok">{t.allQsos.ok}</option>
+                <option value="dup">{t.allQsos.dup}</option>
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">{t.allQsos.filterBand}</Label>
+              <select
+                value={bandFilter}
+                onChange={e => { setBandFilter(e.target.value); setPage(1) }}
+                className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="">{t.allQsos.filterAllBands}</option>
+                {bands.map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs">{t.allQsos.filterMode}</Label>
+              <select
+                value={modeFilter}
+                onChange={e => { setModeFilter(e.target.value); setPage(1) }}
+                className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="">{t.allQsos.filterAllModes}</option>
+                {modes.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
 
