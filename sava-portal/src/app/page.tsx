@@ -1,11 +1,11 @@
 import { getSession } from '@/lib/auth'
 import { getLocale, getTranslations } from '@/lib/i18n'
 import { prisma } from '@/lib/db'
-import { cn } from '@/lib/utils'
 import { SiteHeader } from '@/components/SiteHeader'
 import { HunterSearch } from '@/components/HunterSearch'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { ActivatorGrid } from '@/components/ActivatorGrid'
 
 const ACTIVATORS = [
   { call: 'YT1SAVA', points: 6 },
@@ -25,10 +25,6 @@ type ActivityInfo = {
   mode: string
   startAt: Date
   endAt: Date
-}
-
-function fmtUtc(d: Date) {
-  return d.toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC'
 }
 
 export default async function HomePage() {
@@ -126,73 +122,14 @@ export default async function HomePage() {
         {/* Activators table */}
         <section>
           <h2 className="text-xl font-semibold mb-4 text-center">{t.home.activatorsPoints}</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 max-w-4xl mx-auto">
-            {ACTIVATORS.map(({ call, points }) => {
-              const info = activityMap.get(call)
-              const isActive = info?.isActive === true
-              return (
-                <div key={call} className="relative group/card">
-                  <div className={cn(
-                    'flex items-center justify-between px-3 py-2 rounded-lg border bg-card',
-                    isActive && 'border-2 border-green-500 bg-green-50/70 dark:bg-green-950/40 shadow-[0_0_16px_rgba(34,197,94,0.45)]',
-                  )}>
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      {isActive && (
-                        <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse shrink-0" />
-                      )}
-                      <span className="font-mono font-medium text-sm truncate">{call}</span>
-                    </div>
-                    <Badge
-                      className={
-                        points === 6
-                          ? 'bg-amber-500 text-white hover:bg-amber-500 shrink-0'
-                          : points === 2
-                          ? 'bg-sky-600 text-white hover:bg-sky-600 shrink-0'
-                          : 'shrink-0'
-                      }
-                      variant={points === 1 ? 'secondary' : 'default'}
-                    >
-                      {points} {points === 1 ? t.home.pt : t.home.pts}
-                    </Badge>
-                  </div>
-
-                  {/* Hover tooltip */}
-                  {info && (
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 opacity-0 group-hover/card:opacity-100 transition-opacity duration-150 pointer-events-none z-50">
-                      <div className="bg-popover text-popover-foreground rounded-lg shadow-lg ring-1 ring-foreground/10 p-3 text-xs space-y-1.5">
-                        {isActive ? (
-                          <>
-                            <div className="flex items-center gap-1.5 font-semibold text-green-600 dark:text-green-400">
-                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                              {t.home.activeNow}
-                            </div>
-                            <div className="font-mono text-foreground">
-                              {info.band} · {info.frequency} kHz · {info.mode}
-                            </div>
-                            <div className="text-muted-foreground">
-                              {t.home.activeUntil}: {fmtUtc(info.endAt)}
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="font-semibold text-muted-foreground">{t.home.nextActivation}:</div>
-                            <div className="font-mono text-foreground">
-                              {info.band} · {info.frequency} kHz · {info.mode}
-                            </div>
-                            <div className="text-muted-foreground">{fmtUtc(info.startAt)}</div>
-                            <div className="text-muted-foreground">→ {fmtUtc(info.endAt)}</div>
-                          </>
-                        )}
-                      </div>
-                      <div className="flex justify-center -mt-px">
-                        <div className="w-3 h-3 bg-popover ring-1 ring-foreground/10 rotate-45 shadow-sm" />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+          <ActivatorGrid
+            activators={ACTIVATORS}
+            activity={Array.from(activityMap.entries()).map(([call, info]) => ({
+              call,
+              info: { ...info, startAt: info.startAt.toISOString(), endAt: info.endAt.toISOString() },
+            }))}
+            t={{ pt: t.home.pt, pts: t.home.pts, activeNow: t.home.activeNow, activeUntil: t.home.activeUntil, nextActivation: t.home.nextActivation }}
+          />
         </section>
       </main>
 
