@@ -63,13 +63,12 @@ export function SiteHeader({ user }: Props) {
   return (
     <header className="sava-header text-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between py-4">
+        <div className="flex items-center justify-between py-2">
           {/* Logo */}
-          <Link href="/" className="group flex items-center gap-3 min-w-0">
-            <img src="/yu1hqr-logo.png" alt="YU1HQR" height={48} className="h-10 md:h-12 w-auto shrink-0" />
+          <Link href="/" className="group flex items-center gap-2 min-w-0">
+            <img src="/yu1hqr-logo.png" alt="YU1HQR" height={28} className="h-6 md:h-7 w-auto shrink-0" />
             <div className="min-w-0">
-              <div className="text-base md:text-xl font-bold tracking-wide truncate">{t.home.title}</div>
-              <div className="text-xs text-sky-200 tracking-widest uppercase hidden sm:block">{t.nav.contestSubtitle}</div>
+              <div className="text-sm md:text-base font-bold tracking-wide truncate">{t.home.title}</div>
             </div>
           </Link>
 
