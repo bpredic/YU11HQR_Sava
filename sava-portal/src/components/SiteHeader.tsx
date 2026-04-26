@@ -61,7 +61,7 @@ export function SiteHeader({ user }: Props) {
   )
 
   return (
-    <header className="sava-header text-white">
+    <header className="sava-header text-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between py-4">
           {/* Logo */}
