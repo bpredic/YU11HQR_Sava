@@ -106,9 +106,6 @@ export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId:
     setPage(1)
   }
 
-  if (loading) return <div className="flex items-center gap-2 text-muted-foreground"><Spinner className="h-4 w-4" />{t.logFile.loading}</div>
-  if (error) return <p className="text-destructive">{error}</p>
-
   const sortedFiltered = useMemo(() => {
     return [...filtered].sort((a, b) => {
       const av = a[sortKey]
@@ -120,6 +117,9 @@ export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId:
       return sortDir === 'asc' ? cmp : -cmp
     })
   }, [filtered, sortKey, sortDir])
+
+  if (loading) return <div className="flex items-center gap-2 text-muted-foreground"><Spinner className="h-4 w-4" />{t.logFile.loading}</div>
+  if (error) return <p className="text-destructive">{error}</p>
 
   const unique = filtered.filter(q => !q.isDuplicate).length
   const dupes = filtered.filter(q => q.isDuplicate).length
