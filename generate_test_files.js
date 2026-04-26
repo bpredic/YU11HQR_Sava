@@ -160,7 +160,6 @@ function assignQsos(hIdx) {
 }
 
 // ── Build per-activator pools ─────────────────────────────────────────────────
-const fs2 = require('fs');
 const POOLS = {};
 for (const a of ACTIVATORS) POOLS[a] = [];
 
@@ -182,12 +181,14 @@ function nFiles(poolSize) {
   return Math.min(4, Math.max(1, Math.round(poolSize / 1400)));
 }
 
-// ── Cabrillo helpers ──────────────────────────────────────────────────────────
+// ── Format helpers ────────────────────────────────────────────────────────────
 function randTime() { return new Date(START_MS + Math.floor(rng() * (END_MS - START_MS))); }
-function fmtDate(d) {
+
+// Cabrillo
+function cabDate(d) {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
 }
-function fmtTime(d) {
+function cabTime(d) {
   return `${String(d.getUTCHours()).padStart(2,'0')}${String(d.getUTCMinutes()).padStart(2,'0')}`;
 }
 function cabMode(m) { return m === 'SSB' ? 'PH' : m; }
@@ -209,9 +210,48 @@ function buildCabrillo(activator, qsos) {
     const snStr = String(sn++).padStart(3, '0');
     const mode  = cabMode(q.mode).padEnd(4);
     const freq  = String(q.freq).padStart(7);
-    lines.push(`QSO: ${freq} ${mode} ${fmtDate(q.time)} ${fmtTime(q.time)} ${activator.padEnd(13)} 59  ${snStr}  ${q.hunter.padEnd(13)} 59  001`);
+    lines.push(`QSO: ${freq} ${mode} ${cabDate(q.time)} ${cabTime(q.time)} ${activator.padEnd(13)} 59  ${snStr}  ${q.hunter.padEnd(13)} 59  001`);
   }
   lines.push('END-OF-LOG:');
+  return lines.join('\r\n');
+}
+
+// ADIF
+function adifField(name, value) {
+  return `<${name}:${value.length}>${value}`;
+}
+function adifDate(d) {
+  return `${d.getUTCFullYear()}${String(d.getUTCMonth()+1).padStart(2,'0')}${String(d.getUTCDate()).padStart(2,'0')}`;
+}
+function adifTime(d) {
+  return `${String(d.getUTCHours()).padStart(2,'0')}${String(d.getUTCMinutes()).padStart(2,'0')}00`;
+}
+
+function buildAdif(activator, qsos) {
+  qsos.sort((a, b) => a.time - b.time);
+  const lines = [
+    'ADIF Export – SAVA-RIVER-DAYS-2026',
+    adifField('PROGRAMID', 'SAVA-TEST-GENERATOR'),
+    '<EOH>',
+    '',
+  ];
+  for (const q of qsos) {
+    const freqMhz = (q.freq / 1000).toFixed(3);
+    const rst     = q.mode === 'CW' ? '599' : '59';
+    lines.push(
+      adifField('CALL',              q.hunter),
+      adifField('QSO_DATE',          adifDate(q.time)),
+      adifField('TIME_ON',           adifTime(q.time)),
+      adifField('FREQ',              freqMhz),
+      adifField('BAND',              q.band),
+      adifField('MODE',              q.mode),
+      adifField('RST_SENT',          rst),
+      adifField('RST_RCVD',          rst),
+      adifField('STATION_CALLSIGN',  activator),
+      '<EOR>',
+      '',
+    );
+  }
   return lines.join('\r\n');
 }
 
@@ -222,7 +262,10 @@ if (fs.existsSync(OUT_DIR)) fs.rmSync(OUT_DIR, { recursive: true });
 fs.mkdirSync(OUT_DIR);
 
 console.log('── Generated files ──');
-let grandTotal = 0, grandDups = 0;
+let grandTotal = 0, grandDups = 0, nCabrillo = 0, nAdif = 0;
+
+// Global file counter drives strict 50/50 alternation (even → Cabrillo, odd → ADIF)
+let fileCounter = 0;
 
 for (const activator of ACTIVATORS) {
   const pool   = shuffle(POOLS[activator]);
@@ -231,12 +274,15 @@ for (const activator of ACTIVATORS) {
   fs.mkdirSync(actDir);
 
   // Split unique QSOs evenly across nF files
-  const chunk = Math.ceil(pool.length / nF);
+  const chunk  = Math.ceil(pool.length / nF);
   const chunks = Array.from({ length: nF }, (_, f) => pool.slice(f * chunk, (f + 1) * chunk));
 
   const totalDupsForAct = Math.round(pool.length * DUP_RATE / (1 - DUP_RATE));
 
   for (let f = 0; f < nF; f++) {
+    const isCabrillo = fileCounter % 2 === 0;
+    fileCounter++;
+
     const unique = chunks[f];
     const withTs = unique.map(q => ({ ...q, time: randTime() }));
 
@@ -249,12 +295,15 @@ for (const activator of ACTIVATORS) {
     });
 
     const allQsos  = [...withTs, ...dups];
-    const filename = `${activator}_log${f + 1}.log`;
-    fs.writeFileSync(path.join(actDir, filename), buildCabrillo(activator, allQsos), 'utf8');
+    const ext      = isCabrillo ? 'log' : 'adi';
+    const content  = isCabrillo ? buildCabrillo(activator, allQsos) : buildAdif(activator, allQsos);
+    const filename = `${activator}_log${f + 1}.${ext}`;
+    fs.writeFileSync(path.join(actDir, filename), content, 'utf8');
 
     grandTotal += allQsos.length;
     grandDups  += nDups;
-    console.log(`  ${activator}/${filename}: ${unique.length} unique + ${nDups} dups = ${allQsos.length} QSOs`);
+    if (isCabrillo) nCabrillo++; else nAdif++;
+    console.log(`  ${activator}/${filename} [${isCabrillo ? 'Cabrillo' : 'ADIF    '}]: ${unique.length} unique + ${nDups} dups = ${allQsos.length} QSOs`);
   }
 }
 
@@ -269,6 +318,7 @@ console.log(`
 ── Summary ──────────────────────────────────────────────────────────
   Total hunters   : ${TOTAL_HUNTERS}
   Total QSOs      : ${grandTotal.toLocaleString()}  (${grandDups.toLocaleString()} dups = ${dupPct} %)
+  Files           : ${nCabrillo} Cabrillo (.log) + ${nAdif} ADIF (.adi) = ${nCabrillo + nAdif} total
 
   Hunter distribution:
     40 % (${qualCount} hunters) : qualify for diploma (26 pts, all 20 activators contacted)
