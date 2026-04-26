@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
+import { useRouter } from 'next/navigation'
 import { Alert } from '@/components/ui/alert'
 import { useT } from '@/components/TranslationsProvider'
 import { Spinner } from '@/components/ui/spinner'
@@ -41,7 +42,9 @@ export function AdminActivators() {
   const [resetState, setResetState] = useState<{ id: number | null; password: string | null; resetting: number | null }>({
     id: null, password: null, resetting: null,
   })
+  const [impersonating, setImpersonating] = useState<number | null>(null)
   const t = useT()
+  const router = useRouter()
 
   const fetchActivators = useCallback(async () => {
     try {
@@ -119,6 +122,18 @@ export function AdminActivators() {
     } catch {
       setSessionsDialog(s => ({ ...s, loading: false }))
       toast.error('Failed to load login sessions')
+    }
+  }
+
+  async function handleImpersonate(id: number) {
+    setImpersonating(id)
+    try {
+      const res = await fetch(`/api/admin/activators/${id}/impersonate`, { method: 'POST' })
+      if (!res.ok) { toast.error(t.admin.loginAsFailed); return }
+      router.push('/activator')
+      router.refresh()
+    } finally {
+      setImpersonating(null)
     }
   }
 
@@ -281,6 +296,15 @@ export function AdminActivators() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          disabled={impersonating === a.id}
+                          title={t.admin.loginAsTitle(a.callsign)}
+                          onClick={() => handleImpersonate(a.id)}
+                        >
+                          {t.admin.loginAs}
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
