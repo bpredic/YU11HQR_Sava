@@ -29,6 +29,14 @@ function fmt(dt: string | null) {
   return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
 }
 
+type SortKey = 'callsign' | 'filename' | 'fileType' | 'uploadedAt' | 'qsoCount' | 'firstQsoAt' | 'lastQsoAt'
+
+function getSortValue(l: LogFile, key: SortKey): string | number {
+  if (key === 'callsign') return l.activator.callsign
+  if (key === 'qsoCount') return l.qsoCount
+  return l[key] ?? ''
+}
+
 export function AdminLogFiles() {
   const [logs, setLogs] = useState<LogFile[]>([])
   const [loading, setLoading] = useState(true)
@@ -37,7 +45,18 @@ export function AdminLogFiles() {
   const [dateTo, setDateTo] = useState('')
   const [deleteTarget, setDeleteTarget] = useState<LogFile | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [sortKey, setSortKey] = useState<SortKey>('uploadedAt')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const t = useT()
+
+  function handleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+  }
 
   function fetchLogs() {
     fetch('/api/admin/logs')
@@ -83,6 +102,17 @@ export function AdminLogFiles() {
       return true
     })
   }, [logs, callsignFilter, dateFrom, dateTo])
+
+  const sortedFiltered = useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      const av = getSortValue(a, sortKey)
+      const bv = getSortValue(b, sortKey)
+      const cmp = typeof av === 'number' && typeof bv === 'number'
+        ? av - bv
+        : String(av).localeCompare(String(bv), undefined, { sensitivity: 'base' })
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+  }, [filtered, sortKey, sortDir])
 
   const isFiltered = callsignFilter || dateFrom || dateTo
 
@@ -180,18 +210,34 @@ export function AdminLogFiles() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t.admin.colActivator}</TableHead>
-                  <TableHead>{t.dashboard.colFilename}</TableHead>
-                  <TableHead>{t.dashboard.colType}</TableHead>
-                  <TableHead>{t.dashboard.colUploaded}</TableHead>
-                  <TableHead className="text-right">{t.dashboard.colQsos}</TableHead>
-                  <TableHead>{t.dashboard.colFirstQso}</TableHead>
-                  <TableHead>{t.dashboard.colLastQso}</TableHead>
+                  {(
+                    [
+                      { key: 'callsign', label: t.admin.colActivator },
+                      { key: 'filename', label: t.dashboard.colFilename },
+                      { key: 'fileType', label: t.dashboard.colType },
+                      { key: 'uploadedAt', label: t.dashboard.colUploaded },
+                      { key: 'qsoCount', label: t.dashboard.colQsos },
+                      { key: 'firstQsoAt', label: t.dashboard.colFirstQso },
+                      { key: 'lastQsoAt', label: t.dashboard.colLastQso },
+                    ] as { key: SortKey; label: string }[]
+                  ).map(col => (
+                    <TableHead key={col.key}>
+                      <button
+                        onClick={() => handleSort(col.key)}
+                        className="flex items-center gap-1 hover:text-foreground transition-colors select-none"
+                      >
+                        {col.label}
+                        <span className="text-xs text-muted-foreground">
+                          {sortKey === col.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
+                        </span>
+                      </button>
+                    </TableHead>
+                  ))}
                   <TableHead />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map(l => (
+                {sortedFiltered.map(l => (
                   <TableRow key={l.id}>
                     <TableCell>
                       <Badge variant="secondary" className="font-mono">{l.activator.callsign}</Badge>
