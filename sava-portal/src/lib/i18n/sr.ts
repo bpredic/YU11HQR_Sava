@@ -99,6 +99,9 @@ export const sr: typeof en = {
     colPoints: 'Bodovi',
     colLogFile: 'Log fajl',
     diplomaError: 'Greška pri generisanju diplome',
+    rank: 'Rang',
+    rankOf: (rank: number, total: number) => `#${rank} od ${total}`,
+    rankUnranked: '—',
   },
   dashboard: {
     loading: 'Učitavanje…',

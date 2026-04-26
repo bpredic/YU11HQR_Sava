@@ -39,6 +39,7 @@ function fmt(dt: string) {
 
 export function HunterStats({ callsign, isAdmin = false }: { callsign: string; isAdmin?: boolean }) {
   const [stats, setStats] = useState<Stats | null>(null)
+  const [rank, setRank] = useState<{ position: number; total: number } | null>(null)
   const [loading, setLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
   const [page, setPage] = useState(1)
@@ -46,10 +47,16 @@ export function HunterStats({ callsign, isAdmin = false }: { callsign: string; i
   const t = useT()
 
   useEffect(() => {
-    fetch(`/api/hunter/${encodeURIComponent(callsign)}`)
-      .then(r => r.json())
-      .then(d => { setStats(d); setLoading(false) })
-      .catch(() => setLoading(false))
+    Promise.all([
+      fetch(`/api/hunter/${encodeURIComponent(callsign)}`).then(r => r.json()),
+      fetch('/api/hunter/rankings').then(r => r.json()),
+    ]).then(([statsData, rankingsData]) => {
+      setStats(statsData)
+      if (Array.isArray(rankingsData)) {
+        const entry = rankingsData.find((e: { callsign: string }) => e.callsign === callsign.toUpperCase())
+        if (entry) setRank({ position: entry.rank, total: rankingsData.length })
+      }
+    }).catch(() => {}).finally(() => setLoading(false))
   }, [callsign])
 
   async function downloadDiploma() {
@@ -111,7 +118,7 @@ export function HunterStats({ callsign, isAdmin = false }: { callsign: string; i
       </div>
 
       {/* Score cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="rounded-lg bg-[oklch(0.25_0.09_232)] text-white p-4 text-center">
           <div className="text-3xl font-bold">{stats.totalPoints}</div>
           <div className="text-xs opacity-80">{t.hunter.totalPoints}</div>
@@ -131,6 +138,12 @@ export function HunterStats({ callsign, isAdmin = false }: { callsign: string; i
             {stats.totalPoints}/10
           </div>
           <div className="text-xs text-muted-foreground">{t.hunter.diplomaThreshold}</div>
+        </div>
+        <div className="rounded-lg bg-muted p-4 text-center">
+          <div className="text-2xl font-bold">
+            {rank ? t.hunter.rankOf(rank.position, rank.total) : t.hunter.rankUnranked}
+          </div>
+          <div className="text-xs text-muted-foreground">{t.hunter.rank}</div>
         </div>
       </div>
 

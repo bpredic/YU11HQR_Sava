@@ -97,6 +97,9 @@ export const en = {
     colPoints: 'Points',
     colLogFile: 'Log File',
     diplomaError: 'Could not generate diploma',
+    rank: 'Rank',
+    rankOf: (rank: number, total: number) => `#${rank} of ${total}`,
+    rankUnranked: '—',
   },
   dashboard: {
     loading: 'Loading…',
