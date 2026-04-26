@@ -29,6 +29,13 @@ function fmt(dt: string) {
   return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
 }
 
+type SortKey = 'isDuplicate' | 'hunterCall' | 'band' | 'mode' | 'frequency' | 'datetime' | 'sentRst' | 'rcvdRst' | 'filename'
+
+function getSortValue(q: Qso, key: SortKey): string | number | boolean {
+  if (key === 'filename') return q.logFile.filename
+  return q[key]
+}
+
 export function AllQsos() {
   const [qsos, setQsos] = useState<Qso[]>([])
   const [loading, setLoading] = useState(true)
@@ -39,7 +46,18 @@ export function AllQsos() {
   const [dateTo, setDateTo] = useState('')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
+  const [sortKey, setSortKey] = useState<SortKey>('datetime')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const t = useT()
+
+  function handleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+  }
 
   useEffect(() => {
     fetch('/api/activator/qsos')
@@ -66,6 +84,18 @@ export function AllQsos() {
     })
   }, [qsos, statusFilter, bandFilter, modeFilter, dateFrom, dateTo])
 
+  const sortedFiltered = useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      const av = getSortValue(a, sortKey)
+      const bv = getSortValue(b, sortKey)
+      let cmp: number
+      if (typeof av === 'boolean') cmp = Number(av) - Number(bv)
+      else if (typeof av === 'number' && typeof bv === 'number') cmp = av - bv
+      else cmp = String(av).localeCompare(String(bv), undefined, { sensitivity: 'base' })
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+  }, [filtered, sortKey, sortDir])
+
   const isFiltered = statusFilter || bandFilter || modeFilter || dateFrom || dateTo
 
   function resetFilters() {
@@ -83,7 +113,7 @@ export function AllQsos() {
 
   const unique = filtered.filter(q => !q.isDuplicate).length
   const dupes = filtered.filter(q => q.isDuplicate).length
-  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize)
+  const paginated = sortedFiltered.slice((page - 1) * pageSize, page * pageSize)
 
   return (
     <div className="space-y-4">
@@ -184,15 +214,31 @@ export function AllQsos() {
               <Table containerClassName="max-h-[600px]">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t.allQsos.colStatus}</TableHead>
-                    <TableHead>{t.allQsos.colHunter}</TableHead>
-                    <TableHead>{t.allQsos.colBand}</TableHead>
-                    <TableHead>{t.allQsos.colMode}</TableHead>
-                    <TableHead>{t.allQsos.colFreq}</TableHead>
-                    <TableHead>{t.allQsos.colDateTime}</TableHead>
-                    <TableHead>{t.allQsos.colSentRst}</TableHead>
-                    <TableHead>{t.allQsos.colRcvdRst}</TableHead>
-                    <TableHead>{t.allQsos.colLogFile}</TableHead>
+                    {(
+                      [
+                        { key: 'isDuplicate', label: t.allQsos.colStatus },
+                        { key: 'hunterCall', label: t.allQsos.colHunter },
+                        { key: 'band', label: t.allQsos.colBand },
+                        { key: 'mode', label: t.allQsos.colMode },
+                        { key: 'frequency', label: t.allQsos.colFreq },
+                        { key: 'datetime', label: t.allQsos.colDateTime },
+                        { key: 'sentRst', label: t.allQsos.colSentRst },
+                        { key: 'rcvdRst', label: t.allQsos.colRcvdRst },
+                        { key: 'filename', label: t.allQsos.colLogFile },
+                      ] as { key: SortKey; label: string }[]
+                    ).map(col => (
+                      <TableHead key={col.key}>
+                        <button
+                          onClick={() => handleSort(col.key)}
+                          className="flex items-center gap-1 hover:text-foreground transition-colors select-none"
+                        >
+                          {col.label}
+                          <span className="text-xs text-muted-foreground">
+                            {sortKey === col.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
+                          </span>
+                        </button>
+                      </TableHead>
+                    ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
