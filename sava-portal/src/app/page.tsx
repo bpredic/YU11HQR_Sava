@@ -6,6 +6,7 @@ import { HunterSearch } from '@/components/HunterSearch'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ActivatorGrid } from '@/components/ActivatorGrid'
+import { HunterRankings } from '@/components/HunterRankings'
 
 const ACTIVATORS = [
   { call: 'YT1SAVA', points: 6 },
@@ -120,7 +121,7 @@ export default async function HomePage() {
         </section>
 
         {/* Activators table */}
-        <section>
+        <section className="mb-12">
           <h2 className="text-xl font-semibold mb-4 text-center">{t.home.activatorsPoints}</h2>
           <ActivatorGrid
             activators={ACTIVATORS}
@@ -130,6 +131,11 @@ export default async function HomePage() {
             }))}
             t={{ pt: t.home.pt, pts: t.home.pts, activeNow: t.home.activeNow, activeUntil: t.home.activeUntil, nextActivation: t.home.nextActivation }}
           />
+        </section>
+
+        {/* Hunter rankings */}
+        <section className="max-w-2xl mx-auto">
+          <HunterRankings />
         </section>
       </main>
 

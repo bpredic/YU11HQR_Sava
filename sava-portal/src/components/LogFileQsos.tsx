@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { useT } from '@/components/TranslationsProvider'
 import { QsoPagination } from '@/components/QsoPagination'
 import { Spinner } from '@/components/ui/spinner'
@@ -39,11 +41,17 @@ function fmt(dt: string) {
   return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
 }
 
+const selectClass = 'h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring'
+
 export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId: number; backHref?: string }) {
   const [logFile, setLogFile] = useState<LogFile | null>(null)
   const [qsos, setQsos] = useState<Qso[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [bandFilter, setBandFilter] = useState('')
+  const [modeFilter, setModeFilter] = useState('')
+  const [hunterFilter, setHunterFilter] = useState('')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const t = useT()
@@ -60,12 +68,37 @@ export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId:
       .finally(() => setLoading(false))
   }, [logFileId])
 
+  const bands = useMemo(() => [...new Set(qsos.map(q => q.band))].sort(), [qsos])
+  const modes = useMemo(() => [...new Set(qsos.map(q => q.mode))].sort(), [qsos])
+
+  const filtered = useMemo(() => {
+    const h = hunterFilter.trim().toUpperCase()
+    return qsos.filter(q => {
+      if (statusFilter === 'ok' && q.isDuplicate) return false
+      if (statusFilter === 'dup' && !q.isDuplicate) return false
+      if (bandFilter && q.band !== bandFilter) return false
+      if (modeFilter && q.mode !== modeFilter) return false
+      if (h && !q.hunterCall.toUpperCase().includes(h)) return false
+      return true
+    })
+  }, [qsos, statusFilter, bandFilter, modeFilter, hunterFilter])
+
+  const isFiltered = statusFilter || bandFilter || modeFilter || hunterFilter.trim()
+
+  function resetFilters() {
+    setStatusFilter('')
+    setBandFilter('')
+    setModeFilter('')
+    setHunterFilter('')
+    setPage(1)
+  }
+
   if (loading) return <div className="flex items-center gap-2 text-muted-foreground"><Spinner className="h-4 w-4" />{t.logFile.loading}</div>
   if (error) return <p className="text-destructive">{error}</p>
 
-  const unique = qsos.filter(q => !q.isDuplicate).length
-  const dupes = qsos.filter(q => q.isDuplicate).length
-  const paginated = qsos.slice((page - 1) * pageSize, page * pageSize)
+  const unique = filtered.filter(q => !q.isDuplicate).length
+  const dupes = filtered.filter(q => q.isDuplicate).length
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize)
 
   return (
     <div className="space-y-4">
@@ -89,6 +122,67 @@ export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId:
           <div className="text-xs text-muted-foreground">{t.logFile.duplicates}</div>
         </div>
       </div>
+
+      {/* Filter bar */}
+      <Card>
+        <CardContent className="pt-4 pb-4">
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="space-y-1">
+              <Label className="text-xs">{t.logFile.filterStatus}</Label>
+              <select
+                value={statusFilter}
+                onChange={e => { setStatusFilter(e.target.value); setPage(1) }}
+                className={selectClass}
+              >
+                <option value="">{t.logFile.filterAllStatuses}</option>
+                <option value="ok">{t.logFile.ok}</option>
+                <option value="dup">{t.logFile.dup}</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">{t.logFile.filterBand}</Label>
+              <select
+                value={bandFilter}
+                onChange={e => { setBandFilter(e.target.value); setPage(1) }}
+                className={selectClass}
+              >
+                <option value="">{t.logFile.filterAllBands}</option>
+                {bands.map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">{t.logFile.filterMode}</Label>
+              <select
+                value={modeFilter}
+                onChange={e => { setModeFilter(e.target.value); setPage(1) }}
+                className={selectClass}
+              >
+                <option value="">{t.logFile.filterAllModes}</option>
+                {modes.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">{t.logFile.filterHunter}</Label>
+              <Input
+                value={hunterFilter}
+                onChange={e => { setHunterFilter(e.target.value); setPage(1) }}
+                placeholder={t.logFile.filterHunterPlaceholder}
+                className="h-9 w-36 font-mono uppercase"
+              />
+            </div>
+            {isFiltered && (
+              <Button variant="ghost" size="sm" onClick={resetFilters} className="self-end">
+                {t.logFile.filterReset}
+              </Button>
+            )}
+            {isFiltered && (
+              <p className="text-xs text-muted-foreground self-end pb-1">
+                {t.logFile.filterShowing(filtered.length, qsos.length)}
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -129,7 +223,7 @@ export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId:
             </TableBody>
           </Table>
           <QsoPagination
-            total={qsos.length}
+            total={filtered.length}
             page={page}
             pageSize={pageSize}
             onPageChange={setPage}
