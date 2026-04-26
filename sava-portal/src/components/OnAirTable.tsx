@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -25,7 +25,29 @@ function fmtUtc(iso: string) {
 export function OnAirTable() {
   const [periods, setPeriods] = useState<Period[]>([])
   const [loading, setLoading] = useState(true)
+  const [sortKey, setSortKey] = useState<keyof Omit<Period, 'id'>>('startAt')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const t = useT()
+
+  function handleSort(key: keyof Omit<Period, 'id'>) {
+    if (key === sortKey) {
+      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+  }
+
+  const sortedPeriods = useMemo(() => {
+    return [...periods].sort((a, b) => {
+      const av = a[sortKey]
+      const bv = b[sortKey]
+      const cmp = typeof av === 'number' && typeof bv === 'number'
+        ? av - bv
+        : String(av).localeCompare(String(bv), undefined, { sensitivity: 'base' })
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+  }, [periods, sortKey, sortDir])
 
   const fetchData = useCallback(() => {
     fetch('/api/on-air')
@@ -64,16 +86,32 @@ export function OnAirTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{t.onAir.colCallsign}</TableHead>
-                <TableHead>{t.onAir.colBand}</TableHead>
-                <TableHead>{t.onAir.colMode}</TableHead>
-                <TableHead>{t.onAir.colFreq}</TableHead>
-                <TableHead>{t.onAir.colStart}</TableHead>
-                <TableHead>{t.onAir.colEnd}</TableHead>
+                {(
+                  [
+                    { key: 'callsign', label: t.onAir.colCallsign },
+                    { key: 'band', label: t.onAir.colBand },
+                    { key: 'mode', label: t.onAir.colMode },
+                    { key: 'frequency', label: t.onAir.colFreq },
+                    { key: 'startAt', label: t.onAir.colStart },
+                    { key: 'endAt', label: t.onAir.colEnd },
+                  ] as { key: keyof Omit<Period, 'id'>; label: string }[]
+                ).map(col => (
+                  <TableHead key={col.key}>
+                    <button
+                      onClick={() => handleSort(col.key)}
+                      className="flex items-center gap-1 hover:text-foreground transition-colors select-none"
+                    >
+                      {col.label}
+                      <span className="text-xs text-muted-foreground">
+                        {sortKey === col.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
+                      </span>
+                    </button>
+                  </TableHead>
+                ))}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {periods.map(p => (
+              {sortedPeriods.map(p => (
                 <TableRow key={p.id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
