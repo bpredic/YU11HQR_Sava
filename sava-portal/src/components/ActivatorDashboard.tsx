@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -31,7 +31,29 @@ export function ActivatorDashboard() {
   const [loading, setLoading] = useState(true)
   const [deleteTarget, setDeleteTarget] = useState<LogFile | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [sortKey, setSortKey] = useState<keyof Omit<LogFile, 'id'>>('uploadedAt')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const t = useT()
+
+  function handleSort(key: keyof Omit<LogFile, 'id'>) {
+    if (key === sortKey) {
+      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+  }
+
+  const sortedLogs = useMemo(() => {
+    return [...logs].sort((a, b) => {
+      const av = a[sortKey]
+      const bv = b[sortKey]
+      const cmp = typeof av === 'number' && typeof bv === 'number'
+        ? av - bv
+        : String(av ?? '').localeCompare(String(bv ?? ''), undefined, { sensitivity: 'base' })
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+  }, [logs, sortKey, sortDir])
 
   const fetchLogs = useCallback(async () => {
     const res = await fetch('/api/activator/logs')
@@ -100,17 +122,33 @@ export function ActivatorDashboard() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t.dashboard.colFilename}</TableHead>
-                  <TableHead>{t.dashboard.colType}</TableHead>
-                  <TableHead>{t.dashboard.colUploaded}</TableHead>
-                  <TableHead className="text-right">{t.dashboard.colQsos}</TableHead>
-                  <TableHead>{t.dashboard.colFirstQso}</TableHead>
-                  <TableHead>{t.dashboard.colLastQso}</TableHead>
+                  {(
+                    [
+                      { key: 'filename', label: t.dashboard.colFilename },
+                      { key: 'fileType', label: t.dashboard.colType },
+                      { key: 'uploadedAt', label: t.dashboard.colUploaded },
+                      { key: 'qsoCount', label: t.dashboard.colQsos },
+                      { key: 'firstQsoAt', label: t.dashboard.colFirstQso },
+                      { key: 'lastQsoAt', label: t.dashboard.colLastQso },
+                    ] as { key: keyof Omit<LogFile, 'id'>; label: string }[]
+                  ).map(col => (
+                    <TableHead key={col.key}>
+                      <button
+                        onClick={() => handleSort(col.key)}
+                        className="flex items-center gap-1 hover:text-foreground transition-colors select-none"
+                      >
+                        {col.label}
+                        <span className="text-xs text-muted-foreground">
+                          {sortKey === col.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
+                        </span>
+                      </button>
+                    </TableHead>
+                  ))}
                   <TableHead />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {logs.map(l => (
+                {sortedLogs.map(l => (
                   <TableRow key={l.id}>
                     <TableCell className="font-mono text-sm">{l.filename}</TableCell>
                     <TableCell>
