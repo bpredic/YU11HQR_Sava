@@ -43,6 +43,8 @@ function fmt(dt: string) {
 
 const selectClass = 'h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring'
 
+type SortKey = 'isDuplicate' | 'hunterCall' | 'band' | 'mode' | 'frequency' | 'datetime' | 'sentRst' | 'rcvdRst'
+
 export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId: number; backHref?: string }) {
   const [logFile, setLogFile] = useState<LogFile | null>(null)
   const [qsos, setQsos] = useState<Qso[]>([])
@@ -54,7 +56,18 @@ export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId:
   const [hunterFilter, setHunterFilter] = useState('')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
+  const [sortKey, setSortKey] = useState<SortKey>('datetime')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const t = useT()
+
+  function handleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+  }
 
   useEffect(() => {
     fetch(`/api/activator/logs/${logFileId}/qsos`)
@@ -96,9 +109,21 @@ export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId:
   if (loading) return <div className="flex items-center gap-2 text-muted-foreground"><Spinner className="h-4 w-4" />{t.logFile.loading}</div>
   if (error) return <p className="text-destructive">{error}</p>
 
+  const sortedFiltered = useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      const av = a[sortKey]
+      const bv = b[sortKey]
+      let cmp: number
+      if (typeof av === 'boolean') cmp = Number(av) - Number(bv)
+      else if (typeof av === 'number' && typeof bv === 'number') cmp = av - bv
+      else cmp = String(av).localeCompare(String(bv), undefined, { sensitivity: 'base' })
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+  }, [filtered, sortKey, sortDir])
+
   const unique = filtered.filter(q => !q.isDuplicate).length
   const dupes = filtered.filter(q => q.isDuplicate).length
-  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize)
+  const paginated = sortedFiltered.slice((page - 1) * pageSize, page * pageSize)
 
   return (
     <div className="space-y-4">
@@ -192,14 +217,30 @@ export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId:
           <Table containerClassName="max-h-[600px]">
             <TableHeader>
               <TableRow>
-                <TableHead>{t.logFile.colStatus}</TableHead>
-                <TableHead>{t.logFile.colHunter}</TableHead>
-                <TableHead>{t.logFile.colBand}</TableHead>
-                <TableHead>{t.logFile.colMode}</TableHead>
-                <TableHead>{t.logFile.colFreq}</TableHead>
-                <TableHead>{t.logFile.colDateTime}</TableHead>
-                <TableHead>{t.logFile.colSentRst}</TableHead>
-                <TableHead>{t.logFile.colRcvdRst}</TableHead>
+                {(
+                  [
+                    { key: 'isDuplicate', label: t.logFile.colStatus },
+                    { key: 'hunterCall', label: t.logFile.colHunter },
+                    { key: 'band', label: t.logFile.colBand },
+                    { key: 'mode', label: t.logFile.colMode },
+                    { key: 'frequency', label: t.logFile.colFreq },
+                    { key: 'datetime', label: t.logFile.colDateTime },
+                    { key: 'sentRst', label: t.logFile.colSentRst },
+                    { key: 'rcvdRst', label: t.logFile.colRcvdRst },
+                  ] as { key: SortKey; label: string }[]
+                ).map(col => (
+                  <TableHead key={col.key}>
+                    <button
+                      onClick={() => handleSort(col.key)}
+                      className="flex items-center gap-1 hover:text-foreground transition-colors select-none"
+                    >
+                      {col.label}
+                      <span className="text-xs text-muted-foreground">
+                        {sortKey === col.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
+                      </span>
+                    </button>
+                  </TableHead>
+                ))}
               </TableRow>
             </TableHeader>
             <TableBody>
