@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -53,7 +53,29 @@ export function ActivityPeriods() {
   const [frequency, setFrequency] = useState(String(BAND_DEFAULT_FREQ['40M']))
   const [mode, setMode] = useState('SSB')
 
+  const [sortKey, setSortKey] = useState<keyof Period>('startAt')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const t = useT()
+
+  function handleSort(key: keyof Period) {
+    if (key === sortKey) {
+      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+  }
+
+  const sortedPeriods = useMemo(() => {
+    return [...periods].sort((a, b) => {
+      const av = a[sortKey]
+      const bv = b[sortKey]
+      const cmp = typeof av === 'number' && typeof bv === 'number'
+        ? av - bv
+        : String(av ?? '').localeCompare(String(bv ?? ''), undefined, { sensitivity: 'base' })
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+  }, [periods, sortKey, sortDir])
 
   const fetchPeriods = useCallback(async () => {
     try {
@@ -213,16 +235,32 @@ export function ActivityPeriods() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t.activity.colStart}</TableHead>
-                  <TableHead>{t.activity.colEnd}</TableHead>
-                  <TableHead>{t.activity.colBand}</TableHead>
-                  <TableHead>{t.activity.colFreq}</TableHead>
-                  <TableHead>{t.activity.colMode}</TableHead>
+                  {(
+                    [
+                      { key: 'startAt', label: t.activity.colStart },
+                      { key: 'endAt', label: t.activity.colEnd },
+                      { key: 'band', label: t.activity.colBand },
+                      { key: 'frequency', label: t.activity.colFreq },
+                      { key: 'mode', label: t.activity.colMode },
+                    ] as { key: keyof Period; label: string }[]
+                  ).map(col => (
+                    <TableHead key={col.key}>
+                      <button
+                        onClick={() => handleSort(col.key)}
+                        className="flex items-center gap-1 hover:text-foreground transition-colors select-none"
+                      >
+                        {col.label}
+                        <span className="text-xs text-muted-foreground">
+                          {sortKey === col.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
+                        </span>
+                      </button>
+                    </TableHead>
+                  ))}
                   <TableHead className="text-right">{t.activity.colActions}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {periods.map(p => (
+                {sortedPeriods.map(p => (
                   <TableRow key={p.id}>
                     <TableCell className="text-sm font-mono">{fmtUtc(p.startAt)}</TableCell>
                     <TableCell className="text-sm font-mono">{fmtUtc(p.endAt)}</TableCell>
