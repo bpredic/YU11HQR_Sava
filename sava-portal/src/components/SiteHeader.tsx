@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { MenuIcon, KeyRoundIcon, LogOutIcon } from 'lucide-react'
+import { MenuIcon, KeyRoundIcon, LogOutIcon, Trash2Icon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { ChangePasswordDialog } from '@/components/ChangePasswordDialog'
+import { ClearDatabaseButton } from '@/components/ClearDatabaseButton'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +30,7 @@ export function SiteHeader({ user }: Props) {
   const t = useT()
   const locale = useLocale()
   const [cpOpen, setCpOpen] = useState(false)
+  const [clearDbOpen, setClearDbOpen] = useState(false)
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -102,6 +104,7 @@ export function SiteHeader({ user }: Props) {
                 <Link href="/admin/qsos">
                   <Button variant="ghost" className="text-white hover:bg-white/20 hover:text-white">{t.admin.allQsos}</Button>
                 </Link>
+                <ClearDatabaseButton className="border-white/30 bg-white/10 hover:bg-white/20" />
                 <ChangePasswordDialog role="admin" triggerClassName="text-white hover:bg-white/20 hover:text-white" />
                 <Button onClick={handleLogout} variant="outline" className="border-white/30 text-white bg-white/10 hover:bg-white/20 hover:text-white">
                   {t.nav.logout}
@@ -177,6 +180,10 @@ export function SiteHeader({ user }: Props) {
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
+                    <DropdownMenuItem variant="destructive" onClick={() => setClearDbOpen(true)}>
+                      <Trash2Icon className="size-4" />
+                      {t.admin.clearDatabase}
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setCpOpen(true)}>
                       <KeyRoundIcon className="size-4" />
                       {t.changePassword.changePasswordNav}
@@ -231,6 +238,9 @@ export function SiteHeader({ user }: Props) {
           open={cpOpen}
           onOpenChange={setCpOpen}
         />
+      )}
+      {user?.role === 'admin' && (
+        <ClearDatabaseButton open={clearDbOpen} onOpenChange={setClearDbOpen} />
       )}
     </header>
   )
