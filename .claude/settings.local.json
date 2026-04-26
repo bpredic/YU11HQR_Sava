@@ -27,7 +27,11 @@
       "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(e\\) for e in data if 'error' in str\\(e\\).lower\\(\\) or '500' in str\\(e\\)]\")",
       "Bash(cat \"C:\\\\Users\\\\user\\\\Projects\\\\YU1HQR_Sava\\\\sava-portal\\\\.next\\\\dev\\\\logs\"/*)",
       "Bash(xargs grep *)",
-      "Bash(xargs cat *)"
+      "Bash(xargs cat *)",
+      "Bash(npx eslint *)",
+      "Bash(npx ts-node *)",
+      "Bash(sqlite3 dev.db \"SELECT callsign FROM Activator;\")",
+      "Bash(claude doctor *)"
     ]
   }
 }

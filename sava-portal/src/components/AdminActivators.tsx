@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,7 +43,27 @@ export function AdminActivators() {
     id: null, password: null, resetting: null,
   })
   const [impersonating, setImpersonating] = useState<number | null>(null)
+  const [sortKey, setSortKey] = useState<keyof Activator>('callsign')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const t = useT()
+
+  function handleSort(key: keyof Activator) {
+    if (key === sortKey) {
+      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+  }
+
+  const sortedActivators = useMemo(() => {
+    return [...activators].sort((a, b) => {
+      const av = a[sortKey] ?? ''
+      const bv = b[sortKey] ?? ''
+      const cmp = String(av).localeCompare(String(bv), undefined, { sensitivity: 'base' })
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+  }, [activators, sortKey, sortDir])
   const router = useRouter()
 
   const fetchActivators = useCallback(async () => {
@@ -270,15 +290,31 @@ export function AdminActivators() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t.admin.colCallsign}</TableHead>
-                  <TableHead>{t.admin.colEmail}</TableHead>
-                  <TableHead>{t.admin.colCreated}</TableHead>
-                  <TableHead>{t.admin.colLastLogin}</TableHead>
+                  {(
+                    [
+                      { key: 'callsign', label: t.admin.colCallsign },
+                      { key: 'email', label: t.admin.colEmail },
+                      { key: 'createdAt', label: t.admin.colCreated },
+                      { key: 'lastLoginAt', label: t.admin.colLastLogin },
+                    ] as { key: keyof Activator; label: string }[]
+                  ).map(col => (
+                    <TableHead key={col.key}>
+                      <button
+                        onClick={() => handleSort(col.key)}
+                        className="flex items-center gap-1 hover:text-foreground transition-colors select-none"
+                      >
+                        {col.label}
+                        <span className="text-xs text-muted-foreground">
+                          {sortKey === col.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
+                        </span>
+                      </button>
+                    </TableHead>
+                  ))}
                   <TableHead className="text-right">{t.admin.colActions}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {activators.map(a => (
+                {sortedActivators.map(a => (
                   <TableRow key={a.id}>
                     <TableCell>
                       <button onClick={() => openSessions(a)} className="cursor-pointer">
