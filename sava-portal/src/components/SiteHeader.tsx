@@ -78,6 +78,13 @@ export function SiteHeader({ user }: Props) {
             <ThemeToggle />
             {flagButton}
 
+            <Link href="/on-air">
+              <Button variant="ghost" className="text-white hover:bg-white/20 hover:text-white">
+                <span className="inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse mr-1.5" />
+                {t.onAir.navLink}
+              </Button>
+            </Link>
+
             {!user && (
               <>
                 <Link href="/hunter">
@@ -154,6 +161,11 @@ export function SiteHeader({ user }: Props) {
                 <MenuIcon className="size-5" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem render={<Link href="/on-air" />}>
+                  <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse mr-1" />
+                  {t.onAir.navLink}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 {!user && (
                   <>
                     <DropdownMenuItem render={<Link href="/hunter" />}>
