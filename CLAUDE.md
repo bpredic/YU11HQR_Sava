@@ -89,5 +89,5 @@ When uploading a log file, a QSO is considered a duplicate if another QSO with t
 The repository contains example Cabrillo and ADIF data files in `LogFiles/`. The web app in `sava-portal/` is fully built and passing `npm run build`.
 
 Default admin credentials (from seed): `admin` / `Admin.321` — change in `.env` before production use.
-Created activator YU1BPC bpredic@gmail.com password a na produkciji je 3JR6uwMNgj
+Created activator YU1BPC Bucika.123! password a na produkciji je 3JR6uwMNgj
 NBa produkciji aktivator YU1RDX password LHCnDzwK2M
