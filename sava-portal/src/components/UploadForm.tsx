@@ -84,6 +84,7 @@ export function UploadForm() {
                 ref={fileRef}
                 type="file"
                 className="hidden"
+                accept=".log,.LOG,.adi,.ADI,.adif,.ADIF"
                 onChange={e => setFile(e.target.files?.[0] ?? null)}
               />
             </div>
