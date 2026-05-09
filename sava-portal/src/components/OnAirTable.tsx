@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
@@ -16,20 +16,21 @@ type Period = {
   frequency: number
   startAt: string
   endAt: string
+  isActive: boolean
 }
+
+type SortKey = keyof Omit<Period, 'id' | 'isActive'>
 
 function fmtUtc(iso: string) {
   return new Date(iso).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC'
 }
 
-export function OnAirTable() {
-  const [periods, setPeriods] = useState<Period[]>([])
-  const [loading, setLoading] = useState(true)
-  const [sortKey, setSortKey] = useState<keyof Omit<Period, 'id'>>('startAt')
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+function ActivationTable({ periods, activeIndicator }: { periods: Period[]; activeIndicator: boolean }) {
   const t = useT()
+  const [sortKey, setSortKey] = useState<SortKey>('startAt')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
-  function handleSort(key: keyof Omit<Period, 'id'>) {
+  function handleSort(key: SortKey) {
     if (key === sortKey) {
       setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
     } else {
@@ -38,7 +39,7 @@ export function OnAirTable() {
     }
   }
 
-  const sortedPeriods = useMemo(() => {
+  const sorted = useMemo(() => {
     return [...periods].sort((a, b) => {
       const av = a[sortKey]
       const bv = b[sortKey]
@@ -49,8 +50,66 @@ export function OnAirTable() {
     })
   }, [periods, sortKey, sortDir])
 
+  const cols: { key: SortKey; label: string }[] = [
+    { key: 'callsign', label: t.onAir.colCallsign },
+    { key: 'band', label: t.onAir.colBand },
+    { key: 'mode', label: t.onAir.colMode },
+    { key: 'frequency', label: t.onAir.colFreq },
+    { key: 'startAt', label: t.onAir.colStart },
+    { key: 'endAt', label: t.onAir.colEnd },
+  ]
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          {cols.map(col => (
+            <TableHead key={col.key}>
+              <button
+                onClick={() => handleSort(col.key)}
+                className="flex items-center gap-1 hover:text-foreground transition-colors select-none"
+              >
+                {col.label}
+                <span className="text-xs text-muted-foreground">
+                  {sortKey === col.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
+                </span>
+              </button>
+            </TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {sorted.map(p => (
+          <TableRow key={p.id}>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                {activeIndicator && (
+                  <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse shrink-0" />
+                )}
+                <Link href={`/hunter/${p.callsign}`} className="font-mono font-semibold hover:underline">
+                  {p.callsign}
+                </Link>
+              </div>
+            </TableCell>
+            <TableCell><Badge variant="secondary">{p.band}</Badge></TableCell>
+            <TableCell><Badge variant="outline">{p.mode}</Badge></TableCell>
+            <TableCell className="font-mono">{p.frequency}</TableCell>
+            <TableCell className="text-sm text-muted-foreground">{fmtUtc(p.startAt)}</TableCell>
+            <TableCell className="text-sm text-muted-foreground">{fmtUtc(p.endAt)}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
+}
+
+export function OnAirTable() {
+  const [periods, setPeriods] = useState<Period[]>([])
+  const [loading, setLoading] = useState(true)
+  const t = useT()
+
   const fetchData = useCallback(() => {
-    fetch('/api/on-air')
+    fetch('/api/on-air?mode=upcoming')
       .then(r => r.json())
       .then(data => { setPeriods(data); setLoading(false) })
       .catch(() => setLoading(false))
@@ -70,72 +129,50 @@ export function OnAirTable() {
     )
   }
 
-  return (
-    <Card>
-      <CardContent className="pt-4">
-        {periods.length > 0 && (
-          <p className="text-sm text-muted-foreground mb-4 flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            {t.onAir.activeCount(periods.length)}
-          </p>
-        )}
+  const active = periods.filter(p => p.isActive)
+  const upcoming = periods.filter(p => !p.isActive)
 
-        {periods.length === 0 ? (
-          <p className="text-center text-muted-foreground py-12">{t.onAir.noneActive}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {(
-                  [
-                    { key: 'callsign', label: t.onAir.colCallsign },
-                    { key: 'band', label: t.onAir.colBand },
-                    { key: 'mode', label: t.onAir.colMode },
-                    { key: 'frequency', label: t.onAir.colFreq },
-                    { key: 'startAt', label: t.onAir.colStart },
-                    { key: 'endAt', label: t.onAir.colEnd },
-                  ] as { key: keyof Omit<Period, 'id'>; label: string }[]
-                ).map(col => (
-                  <TableHead key={col.key}>
-                    <button
-                      onClick={() => handleSort(col.key)}
-                      className="flex items-center gap-1 hover:text-foreground transition-colors select-none"
-                    >
-                      {col.label}
-                      <span className="text-xs text-muted-foreground">
-                        {sortKey === col.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
-                      </span>
-                    </button>
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedPeriods.map(p => (
-                <TableRow key={p.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse shrink-0" />
-                      <Link href={`/hunter/${p.callsign}`} className="font-mono font-semibold hover:underline">
-                        {p.callsign}
-                      </Link>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{p.band}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{p.mode}</Badge>
-                  </TableCell>
-                  <TableCell className="font-mono">{p.frequency}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{fmtUtc(p.startAt)}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{fmtUtc(p.endAt)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
-    </Card>
+  return (
+    <div className="space-y-8">
+      {/* Active now */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            {t.onAir.pageTitle}
+            {active.length > 0 && (
+              <span className="text-sm font-normal text-muted-foreground ml-1">
+                — {t.onAir.activeCount(active.length)}
+              </span>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {active.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">{t.onAir.noneActive}</p>
+          ) : (
+            <ActivationTable periods={active} activeIndicator={true} />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Upcoming */}
+      {upcoming.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-blue-400" />
+              {t.onAir.upcomingTitle}
+              <span className="text-sm font-normal text-muted-foreground ml-1">
+                — {t.onAir.scheduledCount(upcoming.length)}
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ActivationTable periods={upcoming} activeIndicator={false} />
+          </CardContent>
+        </Card>
+      )}
+    </div>
   )
 }

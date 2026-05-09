@@ -294,6 +294,7 @@ export const en = {
   onAir: {
     pageTitle: 'Activators on the Air',
     pageSubtitle: 'Currently active stations you can contact right now',
+    upcomingTitle: 'Upcoming Activations',
     noneActive: 'No activators are currently on the air.',
     colCallsign: 'Callsign',
     colBand: 'Band',
@@ -304,6 +305,7 @@ export const en = {
     loading: 'Loading…',
     navLink: 'On the Air',
     activeCount: (n: number) => `${n} activator${n !== 1 ? 's' : ''} on the air`,
+    scheduledCount: (n: number) => `${n} activation${n !== 1 ? 's' : ''} scheduled`,
   },
   rankings: {
     title: 'Hunter Rankings',

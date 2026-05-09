@@ -322,6 +322,7 @@ export const sr: typeof en = {
   onAir: {
     pageTitle: 'Aktivatori u eteru',
     pageSubtitle: 'Trenutno aktivne stanice koje možete kontaktirati',
+    upcomingTitle: 'Zakazane aktivacije',
     noneActive: 'Nema aktivnih aktivatora u ovom trenutku.',
     colCallsign: 'Pozivni znak',
     colBand: 'Opseg',
@@ -332,6 +333,7 @@ export const sr: typeof en = {
     loading: 'Učitavanje…',
     navLink: 'U eteru',
     activeCount: (n: number) => `${n} aktivator${n !== 1 ? 'a' : ''} u eteru`,
+    scheduledCount: (n: number) => `${n} aktivacija zakazano`,
   },
   rankings: {
     title: 'Rang lista lovaca',
