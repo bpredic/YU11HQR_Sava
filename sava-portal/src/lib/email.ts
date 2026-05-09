@@ -10,6 +10,31 @@ function createTransport() {
   })
 }
 
+export async function sendPasswordResetEmail(
+  email: string,
+  callsign: string,
+  resetLink: string
+): Promise<void> {
+  const transporter = createTransport()
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM ?? 'noreply@sava-contest.org',
+    to: email,
+    subject: 'Sava River Days – Password Reset',
+    text: [
+      `Dear ${callsign},`,
+      '',
+      'You requested a password reset for your Sava River Days activator account.',
+      '',
+      'Click the link below to set a new password (valid for 1 hour):',
+      resetLink,
+      '',
+      'If you did not request this, you can safely ignore this email.',
+      '',
+      '73 de Sava River Days Contest Committee',
+    ].join('\n'),
+  })
+}
+
 export async function sendActivatorWelcomeEmail(
   email: string,
   callsign: string,

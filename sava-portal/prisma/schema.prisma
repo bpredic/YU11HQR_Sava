@@ -23,9 +23,22 @@ model Activator {
   createdAt     DateTime       @default(now())
   lastLoginAt         DateTime?
   mustChangePassword  Boolean   @default(true)
-  logFiles         LogFile[]
-  loginSessions    LoginSession[]
-  activityPeriods  ActivityPeriod[]
+  logFiles            LogFile[]
+  loginSessions       LoginSession[]
+  activityPeriods     ActivityPeriod[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id          Int       @id @default(autoincrement())
+  activatorId Int
+  activator   Activator @relation(fields: [activatorId], references: [id], onDelete: Cascade)
+  tokenHash   String    @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([activatorId])
 }
 
 model LoginSession {

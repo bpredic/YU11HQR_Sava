@@ -87,6 +87,9 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? t.login.loggingIn : t.login.logIn}
             </Button>
+            <div className="text-center text-sm text-muted-foreground">
+              <Link href="/forgot-password" className="hover:underline">{t.login.forgotPassword}</Link>
+            </div>
           </form>
 
           <div className="mt-4 text-center text-sm text-muted-foreground">
