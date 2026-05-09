@@ -232,7 +232,7 @@ export const sr: typeof en = {
     backToLogs: '← Nazad na logove',
     totalQsos: 'Ukupni QSO-ovi',
     duplicates: 'Duplikati',
-    contacts: 'Kontakti u ovom fajlu',
+    contacts: 'Svi otpremljeni QSO',
     colStatus: 'Status',
     colHunter: 'Lovac',
     colBand: 'Opseg',

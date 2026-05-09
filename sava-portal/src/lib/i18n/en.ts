@@ -230,7 +230,7 @@ export const en = {
     backToLogs: '← Back to Logs',
     totalQsos: 'Total QSOs',
     duplicates: 'Duplicates',
-    contacts: 'Contacts in this file',
+    contacts: 'All uploaded QSOs',
     colStatus: 'Status',
     colHunter: 'Hunter',
     colBand: 'Band',
