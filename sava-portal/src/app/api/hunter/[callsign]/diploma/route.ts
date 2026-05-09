@@ -54,12 +54,12 @@ export async function GET(
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
 
   // Print callsign centered horizontally, in the middle of the decorative frame
-  const callsignSize = Math.round(imgH * 0.18)
+  const callsignSize = Math.round(imgH * 0.126)
   const callsignWidth = boldFont.widthOfTextAtSize(upperCall, callsignSize)
   page.drawText(upperCall, {
     x: (imgW - callsignWidth) / 2,
-    // Moved up by 50% of original font height (0.09*0.5=0.045) before doubling size
-    y: imgH * 0.505,
+    // Lowered by 10% of pre-reduction font height (0.18*0.10=0.018), then reduced by 30%
+    y: imgH * 0.487,
     size: callsignSize,
     font: boldFont,
     color: rgb(0.04, 0.18, 0.32),
