@@ -211,7 +211,7 @@ export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId:
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t.logFile.contacts}</CardTitle>
+          <CardTitle className="text-base">{t.logFile.contactsInFile(logFile?.filename ?? '')}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table containerClassName="max-h-[600px]">

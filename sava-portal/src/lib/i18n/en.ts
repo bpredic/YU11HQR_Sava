@@ -231,6 +231,7 @@ export const en = {
     totalQsos: 'Total QSOs',
     duplicates: 'Duplicates',
     contacts: 'All uploaded QSOs',
+    contactsInFile: (filename: string) => `QSOs in file "${filename}"`,
     colStatus: 'Status',
     colHunter: 'Hunter',
     colBand: 'Band',

@@ -233,6 +233,7 @@ export const sr: typeof en = {
     totalQsos: 'Ukupni QSO-ovi',
     duplicates: 'Duplikati',
     contacts: 'Svi otpremljeni QSO',
+    contactsInFile: (filename: string) => `QSO u datoteci „${filename}"`,
     colStatus: 'Status',
     colHunter: 'Lovac',
     colBand: 'Opseg',
