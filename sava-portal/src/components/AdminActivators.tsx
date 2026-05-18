@@ -240,7 +240,7 @@ export function AdminActivators() {
         open={sessionsDialog.activator !== null}
         onOpenChange={v => { if (!v) setSessionsDialog({ activator: null, sessions: [], loading: false }) }}
       >
-        <DialogContent className="max-h-[50vh] flex flex-col">
+        <DialogContent className="max-h-[50vh] flex flex-col sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>
               {sessionsDialog.activator ? t.admin.loginSessionsTitle(sessionsDialog.activator.callsign) : ''}
