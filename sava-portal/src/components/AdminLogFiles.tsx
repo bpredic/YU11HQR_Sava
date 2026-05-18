@@ -242,7 +242,9 @@ export function AdminLogFiles() {
                     <TableCell>
                       <Badge variant="secondary" className="font-mono">{l.activator.callsign}</Badge>
                     </TableCell>
-                    <TableCell className="font-mono text-sm">{l.filename}</TableCell>
+                    <TableCell className="font-mono text-sm max-w-[220px]">
+                      <span className="block truncate" title={l.filename}>{l.filename}</span>
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline">{l.fileType.toUpperCase()}</Badge>
                     </TableCell>

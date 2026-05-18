@@ -150,7 +150,9 @@ export function ActivatorDashboard() {
               <TableBody>
                 {sortedLogs.map(l => (
                   <TableRow key={l.id}>
-                    <TableCell className="font-mono text-sm">{l.filename}</TableCell>
+                    <TableCell className="font-mono text-sm max-w-[220px]">
+                      <span className="block truncate" title={l.filename}>{l.filename}</span>
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline">{l.fileType.toUpperCase()}</Badge>
                     </TableCell>

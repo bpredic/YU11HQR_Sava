@@ -257,7 +257,9 @@ export function AllQsos() {
                       <TableCell className="text-sm">{fmt(q.datetime)}</TableCell>
                       <TableCell>{q.sentRst}</TableCell>
                       <TableCell>{q.rcvdRst}</TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">{q.logFile.filename}</TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground max-w-[180px]">
+                        <span className="block truncate" title={q.logFile.filename}>{q.logFile.filename}</span>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

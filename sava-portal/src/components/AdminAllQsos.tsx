@@ -285,7 +285,9 @@ export function AdminAllQsos() {
                       <TableCell className="text-sm">{fmt(q.datetime)}</TableCell>
                       <TableCell className="text-sm">{q.sentRst}{q.sentExch ? ` / ${q.sentExch}` : ''}</TableCell>
                       <TableCell className="text-sm">{q.rcvdRst}{q.rcvdExch ? ` / ${q.rcvdExch}` : ''}</TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">{q.logFile.filename}</TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground max-w-[180px]">
+                        <span className="block truncate" title={q.logFile.filename}>{q.logFile.filename}</span>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
