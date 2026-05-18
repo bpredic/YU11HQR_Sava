@@ -240,7 +240,7 @@ export function AdminActivators() {
         open={sessionsDialog.activator !== null}
         onOpenChange={v => { if (!v) setSessionsDialog({ activator: null, sessions: [], loading: false }) }}
       >
-        <DialogContent>
+        <DialogContent className="max-h-[50vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>
               {sessionsDialog.activator ? t.admin.loginSessionsTitle(sessionsDialog.activator.callsign) : ''}
@@ -251,28 +251,30 @@ export function AdminActivators() {
           ) : sessionsDialog.sessions.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">{t.admin.loginSessionsEmpty}</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>#</TableHead>
-                  <TableHead>{t.admin.colLastLogin}</TableHead>
-                  <TableHead>IP</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sessionsDialog.sessions.map((s, i) => (
-                  <TableRow key={s.id}>
-                    <TableCell className="text-muted-foreground text-sm">{i + 1}</TableCell>
-                    <TableCell className="text-sm font-mono">
-                      {new Date(s.loggedInAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'medium' })}
-                    </TableCell>
-                    <TableCell className="text-sm font-mono text-muted-foreground">
-                      {s.ipAddress ? s.ipAddress.replace(/^::ffff:/i, '') : '—'}
-                    </TableCell>
+            <div className="overflow-y-auto min-h-0 flex-1">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>#</TableHead>
+                    <TableHead>{t.admin.colLastLogin}</TableHead>
+                    <TableHead>IP</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {sessionsDialog.sessions.map((s, i) => (
+                    <TableRow key={s.id}>
+                      <TableCell className="text-muted-foreground text-sm">{i + 1}</TableCell>
+                      <TableCell className="text-sm font-mono">
+                        {new Date(s.loggedInAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'medium' })}
+                      </TableCell>
+                      <TableCell className="text-sm font-mono text-muted-foreground">
+                        {s.ipAddress ? s.ipAddress.replace(/^::ffff:/i, '') : '—'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </DialogContent>
       </Dialog>
