@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { useT } from '@/components/TranslationsProvider'
 import { QsoPagination } from '@/components/QsoPagination'
 import { Spinner } from '@/components/ui/spinner'
+import { FilenameCell } from '@/components/ui/filename-cell'
 
 type Qso = {
   id: number
@@ -257,8 +258,8 @@ export function AllQsos() {
                       <TableCell className="text-sm">{fmt(q.datetime)}</TableCell>
                       <TableCell>{q.sentRst}</TableCell>
                       <TableCell>{q.rcvdRst}</TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground max-w-[180px]">
-                        <span className="block truncate" title={q.logFile.filename}>{q.logFile.filename}</span>
+                      <TableCell className="font-mono text-xs text-muted-foreground">
+                        <FilenameCell filename={q.logFile.filename} maxWidth={140} />
                       </TableCell>
                     </TableRow>
                   ))}

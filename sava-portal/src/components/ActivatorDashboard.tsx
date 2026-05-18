@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useT } from '@/components/TranslationsProvider'
 import { Spinner } from '@/components/ui/spinner'
+import { FilenameCell } from '@/components/ui/filename-cell'
 
 type LogFile = {
   id: number
@@ -150,8 +151,8 @@ export function ActivatorDashboard() {
               <TableBody>
                 {sortedLogs.map(l => (
                   <TableRow key={l.id}>
-                    <TableCell className="font-mono text-sm max-w-[220px]">
-                      <span className="block truncate" title={l.filename}>{l.filename}</span>
+                    <TableCell className="font-mono text-sm">
+                      <FilenameCell filename={l.filename} maxWidth={200} />
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">{l.fileType.toUpperCase()}</Badge>
