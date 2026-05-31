@@ -7,7 +7,10 @@ export async function DELETE(): Promise<Response> {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  await prisma.qso.deleteMany()
+  await Promise.all([
+    prisma.qso.deleteMany(),
+    prisma.activityPeriod.deleteMany(),
+  ])
   await prisma.logFile.deleteMany()
 
   return new Response(null, { status: 204 })

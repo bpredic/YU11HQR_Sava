@@ -82,6 +82,7 @@ export function ClearDatabaseButton({ className, open: controlledOpen, onOpenCha
               <ul className="list-disc pl-5 space-y-1 text-destructive font-medium">
                 <li>{t.admin.clearDatabaseItem1}</li>
                 <li>{t.admin.clearDatabaseItem2}</li>
+                <li>{t.admin.clearDatabaseItem3}</li>
               </ul>
               <p className="font-bold text-destructive">{t.admin.clearDatabaseIrreversible}</p>
             </div>
