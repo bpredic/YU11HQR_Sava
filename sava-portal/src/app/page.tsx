@@ -14,7 +14,7 @@ const ACTIVATORS = [
   { call: 'YU1FI', points: 1 }, { call: 'YU1XO', points: 1 }, { call: 'YT1TU', points: 1 },
   { call: 'YU4LUM', points: 1 }, { call: 'YU4URM', points: 1 }, { call: 'YU4CFA', points: 1 },
   { call: 'YU4NPV', points: 1 }, { call: 'YU4RDX', points: 1 }, { call: 'YU4BPC', points: 1 },
-  { call: 'YU5TM', points: 1 }, { call: 'YU5DR', points: 1 }, { call: 'YT5FDE', points: 1 },
+  { call: 'YU5TM', points: 1 }, { call: 'YU5DR', points: 1 }, { call: 'YU3M', points: 1 },
   { call: 'YT5TNM', points: 1 }, { call: 'YT5WA', points: 1 }, { call: 'YT5MM', points: 1 },
   { call: 'YU6DEJ', points: 1 }, { call: 'YU6DMR', points: 1 }, { call: 'YT1T', points: 1 },
 ]
