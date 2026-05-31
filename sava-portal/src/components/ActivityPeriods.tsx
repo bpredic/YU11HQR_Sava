@@ -52,6 +52,8 @@ export function ActivityPeriods() {
   const [band, setBand] = useState('40M')
   const [frequency, setFrequency] = useState(String(BAND_DEFAULT_FREQ['40M']))
   const [mode, setMode] = useState('SSB')
+  const [repeatDaily, setRepeatDaily] = useState(false)
+  const [repeatCount, setRepeatCount] = useState('2')
 
   const [sortKey, setSortKey] = useState<keyof Period>('startAt')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
@@ -114,19 +116,51 @@ export function ActivityPeriods() {
 
     setSubmitting(true)
     try {
-      const res = await fetch('/api/activator/activity-periods', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ startAt: start.toISOString(), endAt: end.toISOString(), band, frequency: Number(frequency), mode }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        setFormError(data.error === 'overlap' ? t.activity.errorOverlap : (data.error ?? t.activity.errorRequired))
+      const days = repeatDaily ? Math.max(1, Math.min(30, parseInt(repeatCount, 10) || 1)) : 1
+      let saved = 0
+      let skipped = 0
+      let lastError = ''
+
+      for (let i = 0; i < days; i++) {
+        const s = new Date(start.getTime() + i * 86400000)
+        const e = new Date(end.getTime() + i * 86400000)
+        const res = await fetch('/api/activator/activity-periods', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ startAt: s.toISOString(), endAt: e.toISOString(), band, frequency: Number(frequency), mode }),
+        })
+        const data = await res.json()
+        if (res.ok) {
+          saved++
+        } else if (data.error === 'overlap') {
+          skipped++
+        } else {
+          lastError = data.error ?? t.activity.errorRequired
+          break
+        }
+      }
+
+      if (lastError) {
+        setFormError(lastError)
         return
       }
-      toast.success(t.activity.savedOk)
+
+      if (days === 1) {
+        if (saved === 1) toast.success(t.activity.savedOk)
+        else setFormError(t.activity.errorOverlap)
+      } else if (skipped === 0) {
+        toast.success(t.activity.repeatSavedAll(saved))
+      } else if (saved > 0) {
+        toast.success(t.activity.repeatSavedPartial(saved, skipped))
+      } else {
+        setFormError(t.activity.errorOverlap)
+        return
+      }
+
       setStartAt('')
       setEndAt('')
+      setRepeatDaily(false)
+      setRepeatCount('2')
       fetchPeriods()
     } finally {
       setSubmitting(false)
@@ -172,6 +206,32 @@ export function ActivityPeriods() {
                   required
                 />
               </div>
+            </div>
+
+            <div className="flex items-center gap-4 flex-wrap">
+              <label className="flex items-center gap-2 cursor-pointer select-none text-sm font-medium">
+                <input
+                  type="checkbox"
+                  checked={repeatDaily}
+                  onChange={e => setRepeatDaily(e.target.checked)}
+                  className="size-4 accent-primary cursor-pointer"
+                />
+                {t.activity.repeatDaily}
+              </label>
+              {repeatDaily && (
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="repeatCount" className="whitespace-nowrap">{t.activity.repeatCount}</Label>
+                  <Input
+                    id="repeatCount"
+                    type="number"
+                    min={2}
+                    max={30}
+                    value={repeatCount}
+                    onChange={e => setRepeatCount(e.target.value)}
+                    className="w-20 font-mono"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

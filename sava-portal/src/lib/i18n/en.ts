@@ -350,5 +350,9 @@ export const en = {
     errorRequired: 'All fields are required.',
     savedOk: 'Activity period saved.',
     deletedOk: 'Activity period deleted.',
+    repeatDaily: 'Repeat daily',
+    repeatCount: 'Number of days',
+    repeatSavedAll: (n: number) => `${n} period${n !== 1 ? 's' : ''} saved.`,
+    repeatSavedPartial: (saved: number, skipped: number) => `${saved} saved, ${skipped} skipped (overlap).`,
   },
 }

@@ -319,6 +319,10 @@ export const sr: typeof en = {
     errorRequired: 'Sva polja su obavezna.',
     savedOk: 'Period aktivnosti sačuvan.',
     deletedOk: 'Period aktivnosti obrisan.',
+    repeatDaily: 'Ponavljaj svaki dan',
+    repeatCount: 'Broj dana',
+    repeatSavedAll: (n: number) => `${n} period${n !== 1 ? 'a' : ''} sačuvan${n !== 1 ? 'o' : ''}.`,
+    repeatSavedPartial: (saved: number, skipped: number) => `${saved} sačuvano, ${skipped} preskočeno (preklapanje).`,
   },
   onAir: {
     pageTitle: 'Aktivatori u eteru',
