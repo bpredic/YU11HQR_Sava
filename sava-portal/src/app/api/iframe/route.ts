@@ -119,7 +119,9 @@ export async function GET(request: Request): Promise<Response> {
   <title>Sava River Days 2026</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:system-ui,-apple-system,sans-serif;font-size:13px;background:#f8fafc;color:#1e293b;display:flex;height:100vh;overflow:hidden}
+    body{font-family:system-ui,-apple-system,sans-serif;font-size:13px;background:#f8fafc;color:#1e293b;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+    .site-header{background:#1e3a5f;color:#fff;text-align:center;padding:10px 16px;letter-spacing:2px;font-size:18px;font-weight:800;text-transform:uppercase;flex-shrink:0}
+    .columns{display:flex;flex:1;overflow:hidden}
     .left{width:30%;min-width:160px;border-right:1px solid #e2e8f0;overflow-y:auto;background:#fff;flex-shrink:0}
     .right{flex:1;overflow-y:auto;padding:16px;background:#f8fafc}
     .left-header{padding:10px 12px;background:#1e3a5f;color:#fff;font-weight:700;font-size:12px;letter-spacing:.5px;text-transform:uppercase;position:sticky;top:0}
@@ -133,6 +135,8 @@ export async function GET(request: Request): Promise<Response> {
   </style>
 </head>
 <body>
+  <div class="site-header">Sava River Days 2026</div>
+  <div class="columns">
   <div class="left">
     <div class="left-header">Hunter Rankings</div>
     <table>
@@ -148,12 +152,13 @@ export async function GET(request: Request): Promise<Response> {
     </table>
   </div>
   <div class="right">
-    <div class="section-title" style="margin-bottom:6px">Sava River Days 2026 – Hunter Lookup</div>
+    <div class="section-title" style="margin-bottom:6px">Hunter Lookup</div>
     <form method="GET" style="display:flex;gap:8px;margin-bottom:20px">
       <input type="text" name="callsign" value="${esc(callsign)}" placeholder="Enter your callsign…" autocomplete="off" autocorrect="off" spellcheck="false">
       <button type="submit">Search</button>
     </form>
     ${statsHtml}
+  </div>
   </div>
 </body>
 </html>`
