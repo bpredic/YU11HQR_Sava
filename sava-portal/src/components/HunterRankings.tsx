@@ -19,10 +19,15 @@ export function HunterRankings() {
   const t = useT()
 
   useEffect(() => {
-    fetch('/api/hunter/rankings')
-      .then(r => r.json())
-      .then(setData)
-      .finally(() => setLoading(false))
+    const load = () =>
+      fetch('/api/hunter/rankings')
+        .then(r => r.json())
+        .then(setData)
+        .finally(() => setLoading(false))
+
+    load()
+    const interval = setInterval(load, 60_000)
+    return () => clearInterval(interval)
   }, [])
 
   const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE))

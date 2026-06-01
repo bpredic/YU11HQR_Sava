@@ -25,7 +25,7 @@ export async function GET(): Promise<Response> {
       hunterMap.set(hunter, { points: 0, scoringQsos: 0, hasRequired: false, seen: new Set() })
     }
     const entry = hunterMap.get(hunter)!
-    const slotKey = `${q.band}|${q.mode}`
+    const slotKey = `${q.activatorCall}|${q.band}|${q.mode}`
     if (!entry.seen.has(slotKey)) {
       entry.seen.add(slotKey)
       entry.points += getPointsForActivator(q.activatorCall)
