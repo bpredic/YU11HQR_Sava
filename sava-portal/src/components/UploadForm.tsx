@@ -136,11 +136,11 @@ export function UploadForm() {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">{t.upload.firstQso}: </span>
-                <span className="font-mono">{new Date(result.firstQsoAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'medium' })}</span>
+                <span className="font-mono">{new Date(result.firstQsoAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'medium', timeZone: 'UTC' }) + ' UTC'}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">{t.upload.lastQso}: </span>
-                <span className="font-mono">{new Date(result.lastQsoAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'medium' })}</span>
+                <span className="font-mono">{new Date(result.lastQsoAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'medium', timeZone: 'UTC' }) + ' UTC'}</span>
               </div>
             </div>
           </CardContent>

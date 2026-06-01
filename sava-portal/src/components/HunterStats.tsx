@@ -34,7 +34,7 @@ type Stats = {
 }
 
 function fmt(dt: string) {
-  return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
+  return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC'
 }
 
 export function HunterStats({ callsign, isAdmin = false }: { callsign: string; isAdmin?: boolean }) {

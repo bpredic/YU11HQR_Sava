@@ -24,7 +24,7 @@ type LogFile = {
 
 function fmt(dt: string | null) {
   if (!dt) return '—'
-  return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
+  return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC'
 }
 
 export function ActivatorDashboard() {

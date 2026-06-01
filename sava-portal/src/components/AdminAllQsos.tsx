@@ -31,7 +31,7 @@ type Qso = {
 }
 
 function fmt(dt: string) {
-  return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
+  return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC'
 }
 
 type SortKey = 'isDuplicate' | 'activatorCall' | 'hunterCall' | 'band' | 'mode' | 'frequency' | 'datetime' | 'sentRst' | 'rcvdRst'

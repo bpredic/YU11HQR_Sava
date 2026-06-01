@@ -40,7 +40,7 @@ type LogFile = {
 }
 
 function fmt(dt: string) {
-  return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
+  return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC'
 }
 
 const selectClass = 'h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring'

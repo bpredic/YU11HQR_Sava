@@ -265,7 +265,7 @@ export function AdminActivators() {
                     <TableRow key={s.id}>
                       <TableCell className="text-muted-foreground text-sm">{i + 1}</TableCell>
                       <TableCell className="text-sm font-mono">
-                        {new Date(s.loggedInAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'medium' })}
+                        {new Date(s.loggedInAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'medium', timeZone: 'UTC' })} UTC
                       </TableCell>
                       <TableCell className="text-sm font-mono text-muted-foreground">
                         {s.ipAddress ? s.ipAddress.replace(/^::ffff:/i, '') : '—'}
@@ -325,11 +325,11 @@ export function AdminActivators() {
                     </TableCell>
                     <TableCell className="text-sm">{a.email}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {new Date(a.createdAt).toLocaleDateString()}
+                      {new Date(a.createdAt).toLocaleDateString('en-GB', { timeZone: 'UTC' })}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {a.lastLoginAt
-                        ? new Date(a.lastLoginAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
+                        ? new Date(a.lastLoginAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC'
                         : '—'}
                     </TableCell>
                     <TableCell className="text-right">
