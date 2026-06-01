@@ -262,6 +262,8 @@ export const en = {
     colRcvdRst: 'Rcvd RST / Exch',
     dup: 'DUP',
     ok: 'OK',
+    dupPopupTitle: 'Original QSO (first uploaded)',
+    dupPopupNotFound: 'The original QSO is from a different log file and is not shown in this view.',
     filterStatus: 'Status',
     filterAllStatuses: 'All statuses',
     filterBand: 'Band',

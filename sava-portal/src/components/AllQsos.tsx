@@ -11,6 +11,7 @@ import { useT } from '@/components/TranslationsProvider'
 import { QsoPagination } from '@/components/QsoPagination'
 import { Spinner } from '@/components/ui/spinner'
 import { FilenameCell } from '@/components/ui/filename-cell'
+import { DupBadge } from '@/components/DupBadge'
 
 type Qso = {
   id: number
@@ -23,6 +24,7 @@ type Qso = {
   sentRst: string
   rcvdRst: string
   isDuplicate: boolean
+  duplicateOfId: number | null
   logFile: { filename: string }
 }
 
@@ -247,7 +249,7 @@ export function AllQsos() {
                     <TableRow key={q.id} className={q.isDuplicate ? 'opacity-60 bg-amber-50 dark:bg-amber-950/20' : ''}>
                       <TableCell>
                         {q.isDuplicate
-                          ? <Badge variant="outline" className="text-amber-600 border-amber-400">{t.allQsos.dup}</Badge>
+                          ? <DupBadge qso={q} allQsos={qsos} />
                           : <Badge variant="outline" className="text-green-600 border-green-400">{t.allQsos.ok}</Badge>
                         }
                       </TableCell>

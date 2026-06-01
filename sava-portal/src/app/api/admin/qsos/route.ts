@@ -22,6 +22,7 @@ export async function GET(): Promise<Response> {
       sentExch: true,
       rcvdExch: true,
       isDuplicate: true,
+      duplicateOfId: true,
       logFile: { select: { filename: true } },
     },
   })

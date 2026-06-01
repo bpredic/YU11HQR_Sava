@@ -264,6 +264,8 @@ export const sr: typeof en = {
     colRcvdRst: 'Primljeni RST / Exch',
     dup: 'DUP',
     ok: 'OK',
+    dupPopupTitle: 'Originalni QSO (prvi uploadovan)',
+    dupPopupNotFound: 'Originalni QSO je iz druge log datoteke i nije prikazan u ovom pregledu.',
     filterStatus: 'Status',
     filterAllStatuses: 'Svi statusi',
     filterBand: 'Opseg',

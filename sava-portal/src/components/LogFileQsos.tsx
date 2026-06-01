@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { useT } from '@/components/TranslationsProvider'
 import { QsoPagination } from '@/components/QsoPagination'
 import { Spinner } from '@/components/ui/spinner'
+import { DupBadge } from '@/components/DupBadge'
 
 type Qso = {
   id: number
@@ -25,6 +26,7 @@ type Qso = {
   sentExch: string
   rcvdExch: string
   isDuplicate: boolean
+  duplicateOfId: number | null
 }
 
 type LogFile = {
@@ -248,7 +250,7 @@ export function LogFileQsos({ logFileId, backHref = '/activator' }: { logFileId:
                 <TableRow key={q.id} className={q.isDuplicate ? 'opacity-50 bg-amber-50 dark:bg-amber-950/20' : ''}>
                   <TableCell>
                     {q.isDuplicate
-                      ? <Badge variant="outline" className="text-amber-600 border-amber-400">{t.logFile.dup}</Badge>
+                      ? <DupBadge qso={q} allQsos={qsos} />
                       : <Badge variant="outline" className="text-green-600 border-green-400">{t.logFile.ok}</Badge>
                     }
                   </TableCell>
