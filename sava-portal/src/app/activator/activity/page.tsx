@@ -1,8 +1,11 @@
+import type { Metadata } from 'next'
 import { getSession } from '@/lib/auth'
 import { getLocale, getTranslations } from '@/lib/i18n'
 import { redirect } from 'next/navigation'
 import { SiteHeader } from '@/components/SiteHeader'
 import { ActivityPeriods } from '@/components/ActivityPeriods'
+
+export const metadata: Metadata = { title: 'Activity Periods – Sava River Days 2026' }
 
 export default async function ActivityPage() {
   const session = await getSession()

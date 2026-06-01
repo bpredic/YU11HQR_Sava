@@ -1,8 +1,11 @@
+import type { Metadata } from 'next'
 import { getSession } from '@/lib/auth'
 import { getLocale, getTranslations } from '@/lib/i18n'
 import { redirect } from 'next/navigation'
 import { SiteHeader } from '@/components/SiteHeader'
 import { AdminLogFiles } from '@/components/AdminLogFiles'
+
+export const metadata: Metadata = { title: 'Admin Logs – Sava River Days 2026' }
 
 export default async function AdminLogsPage() {
   const session = await getSession()

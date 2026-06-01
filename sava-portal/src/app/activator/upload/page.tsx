@@ -1,8 +1,11 @@
+import type { Metadata } from 'next'
 import { getSession } from '@/lib/auth'
 import { getLocale, getTranslations } from '@/lib/i18n'
 import { redirect } from 'next/navigation'
 import { SiteHeader } from '@/components/SiteHeader'
 import { UploadForm } from '@/components/UploadForm'
+
+export const metadata: Metadata = { title: 'Upload Log – Sava River Days 2026' }
 
 export default async function UploadPage() {
   const session = await getSession()

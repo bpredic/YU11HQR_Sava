@@ -1,6 +1,12 @@
+import type { Metadata } from 'next'
 import { getSession } from '@/lib/auth'
 import { SiteHeader } from '@/components/SiteHeader'
 import { HunterStats } from '@/components/HunterStats'
+
+export async function generateMetadata({ params }: { params: Promise<{ callsign: string }> }): Promise<Metadata> {
+  const { callsign } = await params
+  return { title: `${callsign.toUpperCase()} – Sava River Days 2026` }
+}
 
 export default async function HunterStatsPage({
   params,

@@ -1,8 +1,11 @@
+import type { Metadata } from 'next'
 import { getSession } from '@/lib/auth'
 import { getLocale, getTranslations } from '@/lib/i18n'
 import { redirect } from 'next/navigation'
 import { SiteHeader } from '@/components/SiteHeader'
 import { AdminAllQsos } from '@/components/AdminAllQsos'
+
+export const metadata: Metadata = { title: 'Admin QSOs – Sava River Days 2026' }
 
 export default async function AdminQsosPage() {
   const session = await getSession()

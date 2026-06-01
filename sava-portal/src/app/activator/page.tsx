@@ -1,8 +1,11 @@
+import type { Metadata } from 'next'
 import { getSession } from '@/lib/auth'
 import { getLocale, getTranslations } from '@/lib/i18n'
 import { redirect } from 'next/navigation'
 import { SiteHeader } from '@/components/SiteHeader'
 import { ActivatorDashboard } from '@/components/ActivatorDashboard'
+
+export const metadata: Metadata = { title: 'Activator Dashboard – Sava River Days 2026' }
 
 export default async function ActivatorPage() {
   const session = await getSession()

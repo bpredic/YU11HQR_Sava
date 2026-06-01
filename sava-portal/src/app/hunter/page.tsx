@@ -1,8 +1,11 @@
+import type { Metadata } from 'next'
 import { getSession } from '@/lib/auth'
 import { getLocale, getTranslations } from '@/lib/i18n'
 import { SiteHeader } from '@/components/SiteHeader'
 import { HunterSearch } from '@/components/HunterSearch'
 import { Card, CardContent } from '@/components/ui/card'
+
+export const metadata: Metadata = { title: 'Hunter Lookup – Sava River Days 2026' }
 
 export default async function HunterPage() {
   const session = await getSession()

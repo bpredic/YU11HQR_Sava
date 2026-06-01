@@ -1,7 +1,10 @@
+import type { Metadata } from 'next'
 import { getSession } from '@/lib/auth'
 import { getLocale, getTranslations } from '@/lib/i18n'
 import { SiteHeader } from '@/components/SiteHeader'
 import { OnAirTable } from '@/components/OnAirTable'
+
+export const metadata: Metadata = { title: 'On the Air – Sava River Days 2026' }
 
 export default async function OnAirPage() {
   const session = await getSession()
