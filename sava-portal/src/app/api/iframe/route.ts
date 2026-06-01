@@ -69,7 +69,7 @@ export async function GET(request: Request): Promise<Response> {
   const rankingsRows = rankings.map(r => `
     <tr>
       <td style="color:#94a3b8;text-align:right;padding:4px 8px">${r.rank}</td>
-      <td style="padding:4px 8px;font-family:monospace;font-weight:600">${esc(r.callsign)}</td>
+      <td style="padding:4px 8px;font-family:monospace;font-weight:600"><a href="?callsign=${esc(r.callsign)}" style="color:inherit;text-decoration:none" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${esc(r.callsign)}</a></td>
       <td style="padding:4px 8px;text-align:right;font-weight:700">${r.points}</td>
       <td style="padding:4px 8px;text-align:center">${r.qualifies ? '<span style="color:#16a34a;font-size:16px" title="Diploma">✓</span>' : ''}</td>
     </tr>`).join('')
