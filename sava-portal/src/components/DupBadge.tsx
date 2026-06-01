@@ -38,35 +38,51 @@ function fmtUtc(dt: string) {
   return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC'
 }
 
+async function fetchById(id: number): Promise<OriginalQso | null> {
+  const r = await fetch(`/api/qso/${id}`)
+  return r.ok ? r.json() : null
+}
+
+async function fetchByKey(q: QsoBase): Promise<OriginalQso | null> {
+  const params = new URLSearchParams({
+    activatorCall: q.activatorCall,
+    hunterCall: q.hunterCall,
+    band: q.band,
+    mode: q.mode,
+  })
+  const r = await fetch(`/api/qso/find-original?${params}`)
+  return r.ok ? r.json() : null
+}
+
 export function DupBadge<Q extends QsoBase>({ qso, allQsos }: { qso: Q; allQsos: Q[] }) {
   const [open, setOpen] = useState(false)
   const [original, setOriginal] = useState<OriginalQso | null | 'loading'>('loading')
   const t = useT()
 
-  function handleOpen() {
+  async function handleOpen() {
     setOpen(true)
-    if (original !== 'loading') return // already resolved
+    if (original !== 'loading') return
 
+    // Step 1: if we know the ID, fetch it directly (works across all log files)
     if (qso.duplicateOfId != null) {
-      // Try client-side first (fast path — original may already be loaded)
-      const found = allQsos.find(q => q.id === qso.duplicateOfId)
-      if (found) { setOriginal(found); return }
-      // Fetch from server (cross-file dup not in current view)
-      fetch(`/api/qso/${qso.duplicateOfId}`)
-        .then(r => r.ok ? r.json() : null)
-        .then(d => setOriginal(d))
-        .catch(() => setOriginal(null))
-    } else {
-      // Within-file dup: duplicateOfId was null at insert time; find by key
-      const found = allQsos.find(q =>
-        !q.isDuplicate &&
-        q.activatorCall === qso.activatorCall &&
-        q.hunterCall === qso.hunterCall &&
-        q.band === qso.band &&
-        q.mode === qso.mode
-      )
-      setOriginal(found ?? null)
+      const found = await fetchById(qso.duplicateOfId)
+      setOriginal(found)
+      return
     }
+
+    // Step 2: within-file dup (duplicateOfId null) — try loaded data first (fast)
+    const inMemory = allQsos.find(q =>
+      !q.isDuplicate &&
+      q.activatorCall === qso.activatorCall &&
+      q.hunterCall === qso.hunterCall &&
+      q.band === qso.band &&
+      q.mode === qso.mode,
+    )
+    if (inMemory) { setOriginal(inMemory); return }
+
+    // Step 3: not in loaded data — query the database by key
+    const found = await fetchByKey(qso)
+    setOriginal(found)
   }
 
   return (
