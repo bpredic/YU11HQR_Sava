@@ -8,11 +8,14 @@ export function GAPageViewTracker({ gaId }: { gaId: string }) {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    const url = pathname + (searchParams.toString() ? `?${searchParams}` : '')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const w = window as any
     if (typeof w.gtag === 'function') {
-      w.gtag('config', gaId, { page_path: url, page_title: document.title })
+      w.gtag('event', 'page_view', {
+        page_location: window.location.href,
+        page_title: document.title,
+        send_to: gaId,
+      })
     }
   }, [pathname, searchParams, gaId])
 
