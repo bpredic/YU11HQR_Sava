@@ -6,6 +6,8 @@ import { ThemeProvider } from '@/components/ThemeProvider'
 import { TranslationsProvider } from '@/components/TranslationsProvider'
 import { getLocale } from '@/lib/i18n'
 import { GoogleAnalytics } from '@next/third-parties/google'
+import { GAPageViewTracker } from '@/components/GAPageViewTracker'
+import { Suspense } from 'react'
 
 const outfit = Outfit({
   variable: '--font-sans',
@@ -42,7 +44,12 @@ export default async function RootLayout({
         </ThemeProvider>
       </body>
       {process.env.NEXT_PUBLIC_GA_ID && (
-        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        <>
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+          <Suspense fallback={null}>
+            <GAPageViewTracker gaId={process.env.NEXT_PUBLIC_GA_ID} />
+          </Suspense>
+        </>
       )}
     </html>
   )
