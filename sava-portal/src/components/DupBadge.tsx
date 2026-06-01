@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Spinner } from '@/components/ui/spinner'
 import { useT } from '@/components/TranslationsProvider'
 
 type QsoBase = {
   id: number
+  activatorCall: string
   hunterCall: string
   band: string
   mode: string
@@ -14,7 +16,21 @@ type QsoBase = {
   datetime: string
   sentRst: string
   rcvdRst: string
+  isDuplicate: boolean
   duplicateOfId: number | null
+  logFile?: { filename: string }
+}
+
+type OriginalQso = {
+  id: number
+  activatorCall: string
+  hunterCall: string
+  band: string
+  mode: string
+  frequency: number
+  datetime: string
+  sentRst: string
+  rcvdRst: string
   logFile?: { filename: string }
 }
 
@@ -24,12 +40,38 @@ function fmtUtc(dt: string) {
 
 export function DupBadge<Q extends QsoBase>({ qso, allQsos }: { qso: Q; allQsos: Q[] }) {
   const [open, setOpen] = useState(false)
+  const [original, setOriginal] = useState<OriginalQso | null | 'loading'>('loading')
   const t = useT()
-  const original = qso.duplicateOfId != null ? (allQsos.find(q => q.id === qso.duplicateOfId) ?? null) : null
+
+  function handleOpen() {
+    setOpen(true)
+    if (original !== 'loading') return // already resolved
+
+    if (qso.duplicateOfId != null) {
+      // Try client-side first (fast path — original may already be loaded)
+      const found = allQsos.find(q => q.id === qso.duplicateOfId)
+      if (found) { setOriginal(found); return }
+      // Fetch from server (cross-file dup not in current view)
+      fetch(`/api/qso/${qso.duplicateOfId}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(d => setOriginal(d))
+        .catch(() => setOriginal(null))
+    } else {
+      // Within-file dup: duplicateOfId was null at insert time; find by key
+      const found = allQsos.find(q =>
+        !q.isDuplicate &&
+        q.activatorCall === qso.activatorCall &&
+        q.hunterCall === qso.hunterCall &&
+        q.band === qso.band &&
+        q.mode === qso.mode
+      )
+      setOriginal(found ?? null)
+    }
+  }
 
   return (
     <>
-      <button onClick={() => setOpen(true)}>
+      <button onClick={handleOpen}>
         <Badge
           variant="outline"
           className="text-amber-600 border-amber-400 cursor-pointer hover:bg-amber-50 dark:hover:bg-amber-950/30"
@@ -44,10 +86,17 @@ export function DupBadge<Q extends QsoBase>({ qso, allQsos }: { qso: Q; allQsos:
             <DialogTitle>{t.logFile.dupPopupTitle}</DialogTitle>
           </DialogHeader>
 
-          {original ? (
+          {original === 'loading' ? (
+            <div className="flex items-center gap-2 text-muted-foreground text-sm py-2">
+              <Spinner className="h-4 w-4" /> Loading…
+            </div>
+          ) : original ? (
             <div className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
               <span className="text-muted-foreground">Hunter</span>
               <span className="font-mono font-semibold">{original.hunterCall}</span>
+
+              <span className="text-muted-foreground">Activator</span>
+              <span className="font-mono">{original.activatorCall}</span>
 
               <span className="text-muted-foreground">Band / Mode</span>
               <span className="font-mono">{original.band} / {original.mode}</span>
