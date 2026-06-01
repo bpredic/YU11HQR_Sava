@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { TranslationsProvider } from '@/components/TranslationsProvider'
 import { getLocale } from '@/lib/i18n'
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 const outfit = Outfit({
   variable: '--font-sans',
@@ -40,6 +41,9 @@ export default async function RootLayout({
           </TranslationsProvider>
         </ThemeProvider>
       </body>
+      {process.env.NEXT_PUBLIC_GA_ID && (
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+      )}
     </html>
   )
 }
