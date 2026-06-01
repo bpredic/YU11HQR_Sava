@@ -81,14 +81,14 @@ export type HunterStats = {
 }
 
 export function calculateHunterStats(callsign: string, qsos: HunterQso[]): HunterStats {
-  // One QSO per band+mode combination — first uploaded activator for that slot scores
+  // One QSO per activator+band+mode combination — first uploaded wins
   const seen = new Set<string>()
   const scoredQsos: (HunterQso & { points: number })[] = []
   let totalPoints = 0
   let hasRequiredActivator = false
 
   for (const qso of qsos) {
-    const key = `${qso.band}|${qso.mode}`
+    const key = `${qso.activatorCall}|${qso.band}|${qso.mode}`
     const isDup = seen.has(key)
     const points = isDup ? 0 : getPointsForActivator(qso.activatorCall)
 

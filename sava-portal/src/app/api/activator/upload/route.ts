@@ -67,6 +67,16 @@ export async function POST(request: Request): Promise<Response> {
 
   const { qsos, errors } = parseResult
 
+  // Fall back to the logged-in activator's callsign when the file omits STATION_CALLSIGN / sent-call
+  const sessionCallsign = session.callsign?.toUpperCase() ?? ''
+  if (sessionCallsign) {
+    for (const qso of qsos) {
+      if (!qso.activatorCall || qso.activatorCall === 'UNKNOWN') {
+        qso.activatorCall = sessionCallsign
+      }
+    }
+  }
+
   if (qsos.length === 0) {
     return Response.json({ error: 'No valid QSOs found in file', parseErrors: errors }, { status: 400 })
   }
@@ -127,7 +137,7 @@ export async function POST(request: Request): Promise<Response> {
   )
   const existingQsos = existingQsosChunks.flat()
 
-  // Map: "hunterCall|band|mode" → first existing entry (first uploaded wins)
+  // Map: "activatorCall|hunterCall|band|mode" → first existing entry (first uploaded wins)
   type MapEntry = {
     id: number
     filename?: string
@@ -137,7 +147,7 @@ export async function POST(request: Request): Promise<Response> {
   const existingMap = new Map<string, MapEntry>()
 
   for (const eq of existingQsos) {
-    const key = `${eq.hunterCall}|${eq.band}|${eq.mode}`
+    const key = `${eq.activatorCall}|${eq.hunterCall}|${eq.band}|${eq.mode}`
     if (!existingMap.has(key)) {
       existingMap.set(key, {
         id: eq.id,
@@ -154,7 +164,7 @@ export async function POST(request: Request): Promise<Response> {
   let dupCount = 0
 
   for (const qso of qsos) {
-    const key = `${qso.hunterCall}|${qso.band}|${qso.mode}`
+    const key = `${qso.activatorCall}|${qso.hunterCall}|${qso.band}|${qso.mode}`
     const matchEntry = existingMap.get(key)
 
     if (matchEntry) {
@@ -186,7 +196,7 @@ export async function POST(request: Request): Promise<Response> {
       })
     } else {
       newCount++
-      // Claim this hunter|band|mode slot so later QSOs in the same file are duplicates
+      // Claim this activator|hunter|band|mode slot so later QSOs in the same file are duplicates
       existingMap.set(key, { id: 0 })
       toInsert.push({
         logFileId: logFile.id,
