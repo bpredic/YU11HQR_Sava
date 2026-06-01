@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
+import { deleteLogFile } from '@/lib/deleteLogFile'
 
 export async function DELETE(
   _req: Request,
@@ -24,7 +25,7 @@ export async function DELETE(
     return Response.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  await prisma.logFile.delete({ where: { id: logFileId } })
+  await deleteLogFile(logFileId)
 
   return new Response(null, { status: 204 })
 }
