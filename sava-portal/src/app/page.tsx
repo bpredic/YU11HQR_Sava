@@ -26,6 +26,7 @@ type ActivityInfo = {
   mode: string
   startAt: Date
   endAt: Date
+  operatedBy: string
 }
 
 export default async function HomePage() {
@@ -37,7 +38,7 @@ export default async function HomePage() {
   const now = new Date()
   const rawPeriods = await prisma.activityPeriod.findMany({
     where: {
-      activator: { callsign: { in: ACTIVATORS.map(a => a.call) } },
+      callsign: { in: ACTIVATORS.map(a => a.call) },
       endAt: { gt: now },
     },
     include: { activator: { select: { callsign: true } } },
@@ -46,7 +47,7 @@ export default async function HomePage() {
 
   const activityMap = new Map<string, ActivityInfo>()
   for (const p of rawPeriods) {
-    const call = p.activator.callsign
+    const call = p.callsign
     if (activityMap.has(call)) continue
     activityMap.set(call, {
       isActive: p.startAt <= now,
@@ -55,6 +56,7 @@ export default async function HomePage() {
       mode: p.mode,
       startAt: p.startAt,
       endAt: p.endAt,
+      operatedBy: p.activator.callsign,
     })
   }
 
@@ -129,7 +131,7 @@ export default async function HomePage() {
               call,
               info: { ...info, startAt: info.startAt.toISOString(), endAt: info.endAt.toISOString() },
             }))}
-            t={{ pt: t.home.pt, pts: t.home.pts, activeNow: t.home.activeNow, activeUntil: t.home.activeUntil, nextActivation: t.home.nextActivation }}
+            t={{ pt: t.home.pt, pts: t.home.pts, activeNow: t.home.activeNow, activeUntil: t.home.activeUntil, nextActivation: t.home.nextActivation, operatedBy: t.home.operatedBy }}
           />
         </section>
 

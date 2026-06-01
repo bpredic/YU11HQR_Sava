@@ -11,6 +11,7 @@ import { useT } from '@/components/TranslationsProvider'
 type Period = {
   id: number
   callsign: string
+  operatedBy: string
   band: string
   mode: string
   frequency: number
@@ -52,6 +53,7 @@ function ActivationTable({ periods, activeIndicator }: { periods: Period[]; acti
 
   const cols: { key: SortKey; label: string }[] = [
     { key: 'callsign', label: t.onAir.colCallsign },
+    { key: 'operatedBy', label: t.onAir.colOperatedBy },
     { key: 'band', label: t.onAir.colBand },
     { key: 'mode', label: t.onAir.colMode },
     { key: 'frequency', label: t.onAir.colFreq },
@@ -91,6 +93,7 @@ function ActivationTable({ periods, activeIndicator }: { periods: Period[]; acti
                 </Link>
               </div>
             </TableCell>
+            <TableCell className="font-mono text-sm text-muted-foreground">{p.operatedBy}</TableCell>
             <TableCell><Badge variant="secondary">{p.band}</Badge></TableCell>
             <TableCell><Badge variant="outline">{p.mode}</Badge></TableCell>
             <TableCell className="font-mono">{p.frequency}</TableCell>

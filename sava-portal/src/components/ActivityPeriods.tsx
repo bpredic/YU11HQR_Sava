@@ -20,8 +20,11 @@ const BAND_DEFAULT_FREQ: Record<string, number> = {
   '10M': 28500, '6M': 51000, '2M': 145500, '70CM': 433500,
 }
 
+const SPECIAL_CALLSIGNS = ['YU1HQR', 'YT1SAVA']
+
 type Period = {
   id: number
+  callsign: string
   startAt: string
   endAt: string
   band: string
@@ -41,12 +44,15 @@ function toDatetimeLocal(iso: string) {
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`
 }
 
-export function ActivityPeriods() {
+export function ActivityPeriods({ activatorCallsign }: { activatorCallsign: string }) {
+  const callsignOptions = [activatorCallsign, ...SPECIAL_CALLSIGNS.filter(c => c !== activatorCallsign)]
+
   const [periods, setPeriods] = useState<Period[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
 
+  const [callsign, setCallsign] = useState(activatorCallsign)
   const [startAt, setStartAt] = useState('')
   const [endAt, setEndAt] = useState('')
   const [band, setBand] = useState('40M')
@@ -127,7 +133,7 @@ export function ActivityPeriods() {
         const res = await fetch('/api/activator/activity-periods', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ startAt: s.toISOString(), endAt: e.toISOString(), band, frequency: Number(frequency), mode }),
+          body: JSON.stringify({ callsign, startAt: s.toISOString(), endAt: e.toISOString(), band, frequency: Number(frequency), mode }),
         })
         const data = await res.json()
         if (res.ok) {
@@ -206,6 +212,17 @@ export function ActivityPeriods() {
                   required
                 />
               </div>
+            </div>
+
+            <div className="space-y-1 max-w-xs">
+              <Label>{t.activity.callsign}</Label>
+              <select
+                value={callsign}
+                onChange={e => setCallsign(e.target.value)}
+                className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm font-mono shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                {callsignOptions.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
             </div>
 
             <div className="flex items-center gap-4 flex-wrap">
@@ -297,6 +314,7 @@ export function ActivityPeriods() {
                 <TableRow>
                   {(
                     [
+                      { key: 'callsign', label: t.activity.colCallsign },
                       { key: 'startAt', label: t.activity.colStart },
                       { key: 'endAt', label: t.activity.colEnd },
                       { key: 'band', label: t.activity.colBand },
@@ -316,17 +334,20 @@ export function ActivityPeriods() {
                       </button>
                     </TableHead>
                   ))}
+                  <TableHead>{t.activity.colOperatedBy}</TableHead>
                   <TableHead className="text-right">{t.activity.colActions}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sortedPeriods.map(p => (
                   <TableRow key={p.id}>
+                    <TableCell className="font-mono font-medium text-sm">{p.callsign}</TableCell>
                     <TableCell className="text-sm font-mono">{fmtUtc(p.startAt)}</TableCell>
                     <TableCell className="text-sm font-mono">{fmtUtc(p.endAt)}</TableCell>
                     <TableCell><Badge variant="secondary" className="font-mono">{p.band}</Badge></TableCell>
                     <TableCell className="font-mono text-sm">{p.frequency}</TableCell>
                     <TableCell><Badge variant="outline">{p.mode}</Badge></TableCell>
+                    <TableCell className="font-mono text-sm text-muted-foreground">{activatorCallsign}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="destructive" size="sm" onClick={() => handleDelete(p)}>
                         {t.activity.delete}

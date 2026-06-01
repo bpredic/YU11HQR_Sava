@@ -19,7 +19,7 @@ export default async function ActivityPage() {
           <h1 className="text-2xl font-bold">{t.activity.pageTitle}</h1>
           <p className="text-muted-foreground text-sm mt-1">{t.activity.pageSubtitle}</p>
         </div>
-        <ActivityPeriods />
+        <ActivityPeriods activatorCallsign={session.callsign!} />
       </main>
     </div>
   )

@@ -17,7 +17,8 @@ export async function GET(request: Request): Promise<Response> {
 
   const data = periods.map(p => ({
     id: p.id,
-    callsign: p.activator.callsign,
+    callsign: p.callsign,
+    operatedBy: p.activator.callsign,
     band: p.band,
     mode: p.mode,
     frequency: p.frequency,

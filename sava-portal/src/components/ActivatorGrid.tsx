@@ -11,6 +11,7 @@ type ActivityInfo = {
   mode: string
   startAt: string
   endAt: string
+  operatedBy: string
 }
 
 type Activator = { call: string; points: number }
@@ -22,6 +23,7 @@ type T = {
   activeNow: string
   activeUntil: string
   nextActivation: string
+  operatedBy: string
 }
 
 function fmtUtc(iso: string) {
@@ -141,6 +143,9 @@ export function ActivatorGrid({
                       <div className="text-muted-foreground">
                         {t.activeUntil}: {fmtUtc(info.endAt)}
                       </div>
+                      <div className="text-muted-foreground">
+                        {t.operatedBy}: <span className="font-mono">{info.operatedBy}</span>
+                      </div>
                     </>
                   ) : (
                     <>
@@ -150,6 +155,9 @@ export function ActivatorGrid({
                       </div>
                       <div className="text-muted-foreground">{fmtUtc(info.startAt)}</div>
                       <div className="text-muted-foreground">→ {fmtUtc(info.endAt)}</div>
+                      <div className="text-muted-foreground">
+                        {t.operatedBy}: <span className="font-mono">{info.operatedBy}</span>
+                      </div>
                     </>
                   )}
                 </div>

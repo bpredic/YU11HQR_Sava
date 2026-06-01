@@ -23,7 +23,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const body = await request.json()
-  const { startAt, endAt, band, frequency, mode } = body
+  const { startAt, endAt, band, frequency, mode, callsign } = body
 
   const start = new Date(startAt)
   const end = new Date(endAt)
@@ -38,7 +38,12 @@ export async function POST(request: Request): Promise<Response> {
   const bandUpper = String(band ?? '').toUpperCase()
   const modeUpper = String(mode ?? '').toUpperCase()
   const freqKhz = Math.round(Number(frequency))
+  const callsignUpper = String(callsign ?? session.callsign!).toUpperCase()
 
+  const ALLOWED_CALLSIGNS = [session.callsign!.toUpperCase(), 'YU1HQR', 'YT1SAVA']
+  if (!ALLOWED_CALLSIGNS.includes(callsignUpper)) {
+    return Response.json({ error: 'Invalid callsign' }, { status: 400 })
+  }
   if (!KNOWN_BANDS.includes(bandUpper)) {
     return Response.json({ error: 'Invalid band' }, { status: 400 })
   }
@@ -64,6 +69,7 @@ export async function POST(request: Request): Promise<Response> {
   const period = await prisma.activityPeriod.create({
     data: {
       activatorId: session.id,
+      callsign: callsignUpper,
       startAt: start,
       endAt: end,
       band: bandUpper,
