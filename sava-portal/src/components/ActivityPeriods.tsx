@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -63,6 +63,8 @@ export function ActivityPeriods({ activatorCallsign }: { activatorCallsign: stri
   const [mode, setMode] = useState('SSB')
   const [repeatDaily, setRepeatDaily] = useState(false)
   const [repeatCount, setRepeatCount] = useState('2')
+
+  const editCardRef = useRef<HTMLDivElement>(null)
 
   // Edit state
   const [editingPeriod, setEditingPeriod] = useState<Period | null>(null)
@@ -130,6 +132,7 @@ export function ActivityPeriods({ activatorCallsign }: { activatorCallsign: stri
     setEditFrequency(String(p.frequency))
     setEditMode(p.mode)
     setEditError('')
+    setTimeout(() => editCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
   }
 
   function handleCancelEdit() {
@@ -273,7 +276,7 @@ export function ActivityPeriods({ activatorCallsign }: { activatorCallsign: stri
     <div className="space-y-6">
       {editingPeriod ? (
         /* Edit form */
-        <Card>
+        <Card ref={editCardRef}>
           <CardHeader>
             <CardTitle className="text-base">{t.activity.editPeriod}</CardTitle>
           </CardHeader>
@@ -538,7 +541,7 @@ export function ActivityPeriods({ activatorCallsign }: { activatorCallsign: stri
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
-                            variant={isEditing ? 'secondary' : 'outline'}
+                            variant={isEditing ? 'outline' : 'default'}
                             size="sm"
                             onClick={() => isEditing ? handleCancelEdit() : handleEditStart(p)}
                             disabled={isPast}
