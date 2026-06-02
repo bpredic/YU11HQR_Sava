@@ -68,6 +68,7 @@ export function ActivityPeriods({ activatorCallsign }: { activatorCallsign: stri
 
   // Edit state
   const [editingPeriod, setEditingPeriod] = useState<Period | null>(null)
+
   const [editCallsign, setEditCallsign] = useState(activatorCallsign)
   const [editStartAt, setEditStartAt] = useState('')
   const [editEndAt, setEditEndAt] = useState('')
@@ -76,6 +77,13 @@ export function ActivityPeriods({ activatorCallsign }: { activatorCallsign: stri
   const [editMode, setEditMode] = useState('SSB')
   const [editError, setEditError] = useState('')
   const [updating, setUpdating] = useState(false)
+
+  // Scroll edit card into view after React renders it
+  useEffect(() => {
+    if (editingPeriod) {
+      editCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [editingPeriod])
 
   const [sortKey, setSortKey] = useState<keyof Period>('startAt')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
@@ -132,7 +140,6 @@ export function ActivityPeriods({ activatorCallsign }: { activatorCallsign: stri
     setEditFrequency(String(p.frequency))
     setEditMode(p.mode)
     setEditError('')
-    setTimeout(() => editCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
   }
 
   function handleCancelEdit() {
@@ -527,7 +534,6 @@ export function ActivityPeriods({ activatorCallsign }: { activatorCallsign: stri
               </TableHeader>
               <TableBody>
                 {sortedPeriods.map(p => {
-                  const isPast = new Date(p.endAt) <= new Date()
                   const isEditing = editingPeriod?.id === p.id
                   return (
                     <TableRow key={p.id} className={isEditing ? 'bg-muted/50' : undefined}>
@@ -544,7 +550,6 @@ export function ActivityPeriods({ activatorCallsign }: { activatorCallsign: stri
                             variant={isEditing ? 'outline' : 'default'}
                             size="sm"
                             onClick={() => isEditing ? handleCancelEdit() : handleEditStart(p)}
-                            disabled={isPast}
                           >
                             {isEditing ? t.activity.cancel : t.activity.edit}
                           </Button>
