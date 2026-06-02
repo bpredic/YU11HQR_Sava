@@ -34,6 +34,45 @@ function fmt(dt: string) {
   return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC'
 }
 
+function adifField(name: string, value: string): string {
+  return `<${name}:${value.length}>${value}`
+}
+
+function exportAdif(qsos: Qso[]) {
+  const today = new Date().toISOString().slice(0, 10)
+  const rows: string[] = [
+    `Sava River Days 2026 ADIF export ${today}`,
+    '<EOH>',
+    '',
+  ]
+  for (const q of qsos) {
+    const dt = new Date(q.datetime)
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const date = `${dt.getUTCFullYear()}${pad(dt.getUTCMonth() + 1)}${pad(dt.getUTCDate())}`
+    const time = `${pad(dt.getUTCHours())}${pad(dt.getUTCMinutes())}${pad(dt.getUTCSeconds())}`
+    const parts = [
+      adifField('QSO_DATE', date),
+      adifField('TIME_ON', time),
+      adifField('BAND', q.band.toLowerCase()),
+      adifField('MODE', q.mode),
+      adifField('CALL', q.hunterCall),
+      adifField('OPERATOR', q.activatorCall),
+    ]
+    if (q.sentRst) parts.push(adifField('RST_SENT', q.sentRst))
+    if (q.rcvdRst) parts.push(adifField('RST_RCVD', q.rcvdRst))
+    rows.push(parts.join(' ') + ' <EOR>')
+  }
+  const blob = new Blob([rows.join('\n')], { type: 'text/plain' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `sava-river-days-2026-${today}.adi`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
 type SortKey = 'isDuplicate' | 'activatorCall' | 'hunterCall' | 'band' | 'mode' | 'frequency' | 'datetime' | 'sentRst' | 'rcvdRst'
 
 export function AdminAllQsos() {
@@ -231,7 +270,14 @@ export function AdminAllQsos() {
       {/* Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t.logFile.contacts}</CardTitle>
+          <div className="flex items-center justify-between gap-4">
+            <CardTitle className="text-base">{t.logFile.contacts}</CardTitle>
+            {filtered.length > 0 && (
+              <Button variant="outline" size="sm" onClick={() => exportAdif(filtered)}>
+                {t.allQsos.exportAdif}
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {qsos.length === 0 ? (
