@@ -244,6 +244,7 @@ export const en = {
     filterDateTo: 'Date to',
     filterReset: 'Reset',
     filterShowing: (n: number, total: number) => `Showing ${n} of ${total} QSOs`,
+    exportAdif: 'Export ADIF',
   },
   logFile: {
     loading: 'Loading…',

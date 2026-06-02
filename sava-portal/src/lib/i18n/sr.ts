@@ -246,6 +246,7 @@ export const sr: typeof en = {
     filterDateTo: 'Datum do',
     filterReset: 'Resetuj',
     filterShowing: (n: number, total: number) => `Prikazano ${n} od ${total} QSO-ova`,
+    exportAdif: 'Izvezi ADIF',
   },
   logFile: {
     loading: 'Učitavanje…',
