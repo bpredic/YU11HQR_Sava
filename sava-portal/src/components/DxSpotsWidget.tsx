@@ -18,7 +18,8 @@ type DxSpot = {
   isActivator: boolean
 }
 
-const MAX_SPOTS = 50
+const MAX_SPOTS = 200
+const TWO_HOURS_MS = 2 * 60 * 60 * 1000
 
 export function DxSpotsWidget() {
   const t = useT()
@@ -43,13 +44,22 @@ export function DxSpotsWidget() {
       }
     }
 
+    // Purge spots older than 2 h even when no new spots arrive
+    const purge = setInterval(() => {
+      const cutoff = Date.now() - TWO_HOURS_MS
+      setAllSpots(prev => prev.filter(s => new Date(s.receivedAt).getTime() > cutoff))
+    }, 60_000)
+
     return () => {
       es.close()
       setConnected(false)
+      clearInterval(purge)
     }
   }, [])
 
-  const visible = activatorsOnly ? allSpots.filter(s => s.isActivator) : allSpots
+  const cutoff = Date.now() - TWO_HOURS_MS
+  const visible = (activatorsOnly ? allSpots.filter(s => s.isActivator) : allSpots)
+    .filter(s => new Date(s.receivedAt).getTime() > cutoff)
 
   return (
     <Card>
@@ -81,7 +91,7 @@ export function DxSpotsWidget() {
             {connected ? t.spots.waiting : t.spots.connecting}
           </p>
         ) : (
-          <div className="divide-y divide-border/40">
+          <div className="overflow-y-auto max-h-80 divide-y divide-border/40">
             {visible.map((s, i) => (
               <div key={i} className="flex items-center gap-2 text-sm font-mono py-1.5">
                 <span className="text-muted-foreground w-[3.5rem] shrink-0 tabular-nums">{s.time}</span>
