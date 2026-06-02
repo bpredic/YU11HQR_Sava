@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth'
 import { getLocale, getTranslations } from '@/lib/i18n'
 import { SiteHeader } from '@/components/SiteHeader'
 import { OnAirTable } from '@/components/OnAirTable'
+import { DxSpotsWidget } from '@/components/DxSpotsWidget'
 
 export const metadata: Metadata = { title: 'On the Air – Sava River Days 2026' }
 
@@ -19,7 +20,10 @@ export default async function OnAirPage() {
           <h1 className="text-3xl font-bold mb-2">{t.onAir.pageTitle}</h1>
           <p className="text-muted-foreground text-sm">{t.onAir.pageSubtitle}</p>
         </div>
-        <OnAirTable />
+        <div className="space-y-8">
+          <OnAirTable />
+          <DxSpotsWidget />
+        </div>
       </main>
     </div>
   )

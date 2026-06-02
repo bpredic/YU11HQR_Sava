@@ -347,6 +347,14 @@ export const sr: typeof en = {
     activeCount: (n: number) => `${n} aktivator${n !== 1 ? 'a' : ''} u eteru`,
     scheduledCount: (n: number) => `${n} aktivacija zakazano`,
   },
+  spots: {
+    title: 'DX Spotovi',
+    subtitle: 'samo aktivatori',
+    waiting: 'Čekanje na spotove…',
+    connecting: 'Povezivanje na DX klaster…',
+    filterActivators: 'Samo aktivatori',
+    filterAll: 'Svi spotovi',
+  },
   rankings: {
     title: 'Rang lista lovaca',
     colRank: '#',

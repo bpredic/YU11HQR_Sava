@@ -312,6 +312,14 @@ export const en = {
     activeCount: (n: number) => `${n} activator${n !== 1 ? 's' : ''} on the air`,
     scheduledCount: (n: number) => `${n} activation${n !== 1 ? 's' : ''} scheduled`,
   },
+  spots: {
+    title: 'DX Spots',
+    subtitle: 'activators only',
+    waiting: 'Waiting for spots…',
+    connecting: 'Connecting to DX cluster…',
+    filterActivators: 'Activators only',
+    filterAll: 'All spots',
+  },
   rankings: {
     title: 'Hunter Rankings',
     colRank: '#',
