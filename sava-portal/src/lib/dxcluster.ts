@@ -38,6 +38,7 @@ class DxClusterClient extends EventEmitter {
     this.socket = socket
 
     socket.connect(port, host, () => {
+      this.refreshCache().catch(() => {})
       // Small delay to wait for any login prompt before sending callsign
       setTimeout(() => {
         if (!socket.destroyed) socket.write(`${callsign}\r\n`)
@@ -95,14 +96,17 @@ class DxClusterClient extends EventEmitter {
       await this.refreshCache()
     }
 
+    const dxUpper = dx.toUpperCase()
+    const dxBase = dxUpper.split('/')[0]
+
     const spot: DxSpot = {
       spotter,
       freq: parseFloat(freqStr),
-      dx: dx.toUpperCase(),
+      dx: dxUpper,
       comment: comment.trim(),
       time,
       receivedAt: new Date().toISOString(),
-      isActivator: this.activatorCache.has(dx.toUpperCase()),
+      isActivator: this.activatorCache.has(dxUpper) || this.activatorCache.has(dxBase),
     }
 
     this.emit('spot', spot)
