@@ -33,9 +33,9 @@ type Period = {
 }
 
 function fmtUtc(iso: string) {
-  return new Date(iso).toLocaleString('en-GB', {
-    dateStyle: 'short', timeStyle: 'short', timeZone: 'UTC',
-  }) + ' UTC'
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${pad(d.getUTCDate())}/${pad(d.getUTCMonth() + 1)} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`
 }
 
 function toDatetimeLocal(iso: string) {
@@ -508,18 +508,18 @@ export function ActivityPeriods({ activatorCallsign }: { activatorCallsign: stri
                 <TableRow>
                   {(
                     [
-                      { key: 'callsign', label: t.activity.colCallsign },
-                      { key: 'startAt', label: t.activity.colStart },
-                      { key: 'endAt', label: t.activity.colEnd },
-                      { key: 'band', label: t.activity.colBand },
-                      { key: 'frequency', label: t.activity.colFreq },
-                      { key: 'mode', label: t.activity.colMode },
-                    ] as { key: keyof Period; label: string }[]
+                      { key: 'callsign', label: t.activity.colCallsign, cls: 'w-24' },
+                      { key: 'startAt',  label: t.activity.colStart,    cls: 'w-28' },
+                      { key: 'endAt',    label: t.activity.colEnd,      cls: 'w-28' },
+                      { key: 'band',     label: t.activity.colBand,     cls: 'w-16' },
+                      { key: 'frequency',label: t.activity.colFreq,     cls: 'w-20' },
+                      { key: 'mode',     label: t.activity.colMode,     cls: 'w-16' },
+                    ] as { key: keyof Period; label: string; cls: string }[]
                   ).map(col => (
-                    <TableHead key={col.key}>
+                    <TableHead key={col.key} className={col.cls}>
                       <button
                         onClick={() => handleSort(col.key)}
-                        className="flex items-center gap-1 hover:text-foreground transition-colors select-none"
+                        className="flex items-center gap-1 hover:text-foreground transition-colors select-none whitespace-nowrap"
                       >
                         {col.label}
                         <span className="text-xs text-muted-foreground">
@@ -528,7 +528,7 @@ export function ActivityPeriods({ activatorCallsign }: { activatorCallsign: stri
                       </button>
                     </TableHead>
                   ))}
-                  <TableHead>{t.activity.colOperatedBy}</TableHead>
+                  <TableHead className="w-20">{t.activity.colOperatedBy}</TableHead>
                   <TableHead className="text-right">{t.activity.colActions}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -537,13 +537,13 @@ export function ActivityPeriods({ activatorCallsign }: { activatorCallsign: stri
                   const isEditing = editingPeriod?.id === p.id
                   return (
                     <TableRow key={p.id} className={isEditing ? 'bg-muted/50' : undefined}>
-                      <TableCell className="font-mono font-medium text-sm">{p.callsign}</TableCell>
-                      <TableCell className="text-sm font-mono">{fmtUtc(p.startAt)}</TableCell>
-                      <TableCell className="text-sm font-mono">{fmtUtc(p.endAt)}</TableCell>
-                      <TableCell><Badge variant="secondary" className="font-mono">{p.band}</Badge></TableCell>
-                      <TableCell className="font-mono text-sm">{p.frequency}</TableCell>
-                      <TableCell><Badge variant="outline">{p.mode}</Badge></TableCell>
-                      <TableCell className="font-mono text-sm text-muted-foreground">{activatorCallsign}</TableCell>
+                      <TableCell className="font-mono font-medium text-sm whitespace-nowrap">{p.callsign}</TableCell>
+                      <TableCell className="text-sm font-mono whitespace-nowrap">{fmtUtc(p.startAt)}</TableCell>
+                      <TableCell className="text-sm font-mono whitespace-nowrap">{fmtUtc(p.endAt)}</TableCell>
+                      <TableCell className="whitespace-nowrap"><Badge variant="secondary" className="font-mono">{p.band}</Badge></TableCell>
+                      <TableCell className="font-mono text-sm whitespace-nowrap">{p.frequency}</TableCell>
+                      <TableCell className="whitespace-nowrap"><Badge variant="outline">{p.mode}</Badge></TableCell>
+                      <TableCell className="font-mono text-sm text-muted-foreground whitespace-nowrap">{activatorCallsign}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
