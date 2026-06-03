@@ -15,6 +15,19 @@ export type DxSpot = {
 
 const MODE_RE = /\b(FT8|FT4|FT2|CW|SSB|FM|RTTY|PSK31|PSK|DIGI)\b/i
 
+// Standard dial frequencies (kHz) for digital modes; ±1 kHz tolerance
+const FT8_FREQS = [1840, 3573, 5357, 7074, 10136, 14074, 18100, 21074, 24915, 28074, 50313]
+const FT4_FREQS = [3575, 7047, 10140, 14080, 18104, 21140, 24919, 28180]
+const FT2_FREQS = [144170]
+
+function modeFromFreq(freqKhz: number): string {
+  const near = (list: number[]) => list.some(f => Math.abs(freqKhz - f) <= 1)
+  if (near(FT8_FREQS)) return 'FT8'
+  if (near(FT4_FREQS)) return 'FT4'
+  if (near(FT2_FREQS)) return 'FT2'
+  return ''
+}
+
 // DX de SPOTTER:   FREQ  DX_CALL   COMMENT  HHMMZ
 const SPOT_RE = /^DX de\s+([A-Z0-9/]+):\s+(\d+\.?\d*)\s+([A-Z0-9/]+)\s*(.*?)\s*(\d{4}Z)/i
 
@@ -104,13 +117,15 @@ class DxClusterClient extends EventEmitter {
 
     const trimmedComment = comment.trim()
     const modeMatch = trimmedComment.match(MODE_RE)
+    const freqKhz = parseFloat(freqStr)
+    const mode = modeMatch ? modeMatch[1].toUpperCase() : modeFromFreq(freqKhz)
 
     const spot: DxSpot = {
       spotter,
-      freq: parseFloat(freqStr),
+      freq: freqKhz,
       dx: dxUpper,
       comment: trimmedComment,
-      mode: modeMatch ? modeMatch[1].toUpperCase() : '',
+      mode,
       time,
       receivedAt: new Date().toISOString(),
       isActivator: this.activatorCache.has(dxUpper) || this.activatorCache.has(dxBase),
