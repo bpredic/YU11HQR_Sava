@@ -13,6 +13,7 @@ type DxSpot = {
   freq: number
   dx: string
   comment: string
+  mode: string
   time: string
   receivedAt: string
   isActivator: boolean
@@ -106,6 +107,11 @@ export function DxSpotsWidget() {
                 <Badge variant="secondary" className="text-xs tabular-nums shrink-0">
                   {s.freq.toFixed(1)}
                 </Badge>
+                {s.mode && (
+                  <Badge variant="outline" className="text-xs shrink-0">
+                    {s.mode}
+                  </Badge>
+                )}
                 <span className="text-muted-foreground truncate flex-1 text-xs">{s.comment}</span>
                 <span className="text-xs text-muted-foreground shrink-0">de {s.spotter}</span>
               </div>

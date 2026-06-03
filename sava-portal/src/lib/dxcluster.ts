@@ -7,10 +7,13 @@ export type DxSpot = {
   freq: number
   dx: string
   comment: string
+  mode: string
   time: string
   receivedAt: string
   isActivator: boolean
 }
+
+const MODE_RE = /\b(FT8|FT4|FT2|CW|SSB|FM|RTTY|PSK31|PSK|DIGI)\b/i
 
 // DX de SPOTTER:   FREQ  DX_CALL   COMMENT  HHMMZ
 const SPOT_RE = /^DX de\s+([A-Z0-9/]+):\s+(\d+\.?\d*)\s+([A-Z0-9/]+)\s*(.*?)\s*(\d{4}Z)/i
@@ -99,11 +102,15 @@ class DxClusterClient extends EventEmitter {
     const dxUpper = dx.toUpperCase()
     const dxBase = dxUpper.split('/')[0]
 
+    const trimmedComment = comment.trim()
+    const modeMatch = trimmedComment.match(MODE_RE)
+
     const spot: DxSpot = {
       spotter,
       freq: parseFloat(freqStr),
       dx: dxUpper,
-      comment: comment.trim(),
+      comment: trimmedComment,
+      mode: modeMatch ? modeMatch[1].toUpperCase() : '',
       time,
       receivedAt: new Date().toISOString(),
       isActivator: this.activatorCache.has(dxUpper) || this.activatorCache.has(dxBase),
