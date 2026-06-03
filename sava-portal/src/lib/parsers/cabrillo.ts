@@ -35,13 +35,26 @@ export function parseCabrillo(content: string): ParseResult {
     // Remove "QSO:" prefix and split on whitespace
     const parts = line.slice(4).trim().split(/\s+/)
 
-    // Minimum fields: freq mode date time sentCall sentRst sentExch rcvdCall rcvdRst rcvdExch
-    if (parts.length < 10) {
+    // Minimum fields: freq mode date time sentCall sentRst rcvdCall rcvdRst
+    // Exchange fields (sentExch, rcvdExch) are optional — some contests omit them
+    if (parts.length < 8) {
       errors.push(`Malformed QSO line (too few fields): ${line}`)
       continue
     }
 
-    const [freq, mode, date, time, sentCall, sentRst, sentExch, rcvdCall, rcvdRst, rcvdExch] = parts
+    let freq: string, mode: string, date: string, time: string
+    let sentCall: string, sentRst: string, sentExch: string
+    let rcvdCall: string, rcvdRst: string, rcvdExch: string
+
+    if (parts.length >= 10) {
+      // Full format with exchange fields
+      ;[freq, mode, date, time, sentCall, sentRst, sentExch, rcvdCall, rcvdRst, rcvdExch] = parts
+    } else {
+      // No-exchange format (8 or 9 fields)
+      ;[freq, mode, date, time, sentCall, sentRst, rcvdCall, rcvdRst] = parts
+      sentExch = ''
+      rcvdExch = ''
+    }
     const freqKhz = parseInt(freq, 10)
 
     if (isNaN(freqKhz)) {
