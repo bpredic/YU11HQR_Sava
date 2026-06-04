@@ -48,6 +48,8 @@ export function AdminLogFiles() {
   const [deleting, setDeleting] = useState(false)
   const [sortKey, setSortKey] = useState<SortKey>('uploadedAt')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(25)
   const t = useT()
 
   function handleSort(key: SortKey) {
@@ -57,6 +59,7 @@ export function AdminLogFiles() {
       setSortKey(key)
       setSortDir('asc')
     }
+    setPage(1)
   }
 
   function fetchLogs() {
@@ -115,13 +118,23 @@ export function AdminLogFiles() {
     })
   }, [filtered, sortKey, sortDir])
 
+  const pageCount = Math.max(1, Math.ceil(sortedFiltered.length / pageSize))
+  const safePage = Math.min(page, pageCount)
+  const paginated = useMemo(
+    () => sortedFiltered.slice((safePage - 1) * pageSize, safePage * pageSize),
+    [sortedFiltered, safePage, pageSize],
+  )
+
   const isFiltered = callsignFilter || dateFrom || dateTo
 
   function resetFilters() {
     setCallsignFilter('')
     setDateFrom('')
     setDateTo('')
+    setPage(1)
   }
+
+  useEffect(() => { setPage(1) }, [callsignFilter, dateFrom, dateTo, pageSize])
 
   if (loading) return <div className="flex items-center gap-2 text-muted-foreground"><Spinner className="h-4 w-4" />{t.dashboard.loading}</div>
 
@@ -208,21 +221,21 @@ export function AdminLogFiles() {
           ) : filtered.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">{t.admin.filterShowing(0, logs.length)}</p>
           ) : (
-            <Table>
+            <Table className="table-fixed">
               <TableHeader>
                 <TableRow>
                   {(
                     [
-                      { key: 'callsign', label: t.admin.colActivator },
-                      { key: 'filename', label: t.dashboard.colFilename },
-                      { key: 'fileType', label: t.dashboard.colType },
-                      { key: 'uploadedAt', label: t.dashboard.colUploaded },
-                      { key: 'qsoCount', label: t.dashboard.colQsos },
-                      { key: 'firstQsoAt', label: t.dashboard.colFirstQso },
-                      { key: 'lastQsoAt', label: t.dashboard.colLastQso },
-                    ] as { key: SortKey; label: string }[]
+                      { key: 'callsign',   label: t.admin.colActivator,      className: 'w-24' },
+                      { key: 'filename',   label: t.dashboard.colFilename,    className: '' },
+                      { key: 'fileType',   label: t.dashboard.colType,        className: 'w-24' },
+                      { key: 'uploadedAt', label: t.dashboard.colUploaded,    className: 'w-[155px]' },
+                      { key: 'qsoCount',   label: t.dashboard.colQsos,        className: 'w-14' },
+                      { key: 'firstQsoAt', label: t.dashboard.colFirstQso,    className: 'w-[155px]' },
+                      { key: 'lastQsoAt',  label: t.dashboard.colLastQso,     className: 'w-[155px]' },
+                    ] as { key: SortKey; label: string; className: string }[]
                   ).map(col => (
-                    <TableHead key={col.key}>
+                    <TableHead key={col.key} className={col.className}>
                       <button
                         onClick={() => handleSort(col.key)}
                         className="flex items-center gap-1 hover:text-foreground transition-colors select-none"
@@ -234,17 +247,17 @@ export function AdminLogFiles() {
                       </button>
                     </TableHead>
                   ))}
-                  <TableHead />
+                  <TableHead className="w-[165px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedFiltered.map(l => (
+                {paginated.map(l => (
                   <TableRow key={l.id}>
                     <TableCell>
                       <Badge variant="secondary" className="font-mono">{l.activator.callsign}</Badge>
                     </TableCell>
-                    <TableCell className="font-mono text-sm">
-                      <FilenameCell filename={l.filename} maxWidth={160} />
+                    <TableCell className="font-mono text-sm overflow-hidden">
+                      <FilenameCell filename={l.filename} maxWidth={9999} />
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">{l.fileType.toUpperCase()}</Badge>
@@ -271,6 +284,58 @@ export function AdminLogFiles() {
                 ))}
               </TableBody>
             </Table>
+          )}
+
+          {/* Pagination controls */}
+          {sortedFiltered.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t mt-2">
+              {/* Rows per page */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Rows per page:</span>
+                <select
+                  value={pageSize}
+                  onChange={e => setPageSize(Number(e.target.value))}
+                  className="h-8 rounded-md border border-input bg-background px-2 py-0.5 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  {[10, 25, 50, 100].map(n => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Page info + navigation */}
+              <div className="flex items-center gap-1 text-sm">
+                <span className="text-muted-foreground mr-2">
+                  {(safePage - 1) * pageSize + 1}–{Math.min(safePage * pageSize, sortedFiltered.length)} of {sortedFiltered.length}
+                </span>
+
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => setPage(1)} disabled={safePage === 1}>«</Button>
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1}>‹</Button>
+
+                {Array.from({ length: pageCount }, (_, i) => i + 1)
+                  .filter(p => p === 1 || p === pageCount || Math.abs(p - safePage) <= 2)
+                  .reduce<(number | '…')[]>((acc, p, i, arr) => {
+                    if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('…')
+                    acc.push(p)
+                    return acc
+                  }, [])
+                  .map((p, i) =>
+                    p === '…'
+                      ? <span key={`ellipsis-${i}`} className="px-1 text-muted-foreground">…</span>
+                      : <Button
+                          key={p}
+                          variant={p === safePage ? 'default' : 'outline'}
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => setPage(p as number)}
+                          disabled={p === safePage}
+                        >{p}</Button>
+                  )}
+
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => setPage(p => Math.min(pageCount, p + 1))} disabled={safePage === pageCount}>›</Button>
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => setPage(pageCount)} disabled={safePage === pageCount}>»</Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>

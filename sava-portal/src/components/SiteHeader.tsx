@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { MenuIcon, KeyRoundIcon, LogOutIcon, Trash2Icon } from 'lucide-react'
@@ -31,6 +31,20 @@ export function SiteHeader({ user }: Props) {
   const locale = useLocale()
   const [cpOpen, setCpOpen] = useState(false)
   const [clearDbOpen, setClearDbOpen] = useState(false)
+  const [utcTime, setUtcTime] = useState('')
+
+  useEffect(() => {
+    function tick() {
+      const now = new Date()
+      const h = now.getUTCHours().toString().padStart(2, '0')
+      const m = now.getUTCMinutes().toString().padStart(2, '0')
+      const s = now.getUTCSeconds().toString().padStart(2, '0')
+      setUtcTime(`${h}:${m}:${s}`)
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [])
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -69,6 +83,7 @@ export function SiteHeader({ user }: Props) {
             <img src="/yu1hqr-logo.png" alt="YU1HQR" height={28} className="h-6 md:h-7 w-auto shrink-0" />
             <div className="min-w-0">
               <div className="text-sm md:text-base font-bold tracking-wide truncate">{t.home.title}</div>
+              <div className="text-xs font-mono tabular-nums text-sky-200 leading-tight">{utcTime} UTC</div>
             </div>
           </Link>
 
