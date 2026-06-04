@@ -45,6 +45,8 @@ export function AdminActivators() {
   const [impersonating, setImpersonating] = useState<number | null>(null)
   const [sortKey, setSortKey] = useState<keyof Activator>('callsign')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const t = useT()
 
   function handleSort(key: keyof Activator) {
@@ -54,6 +56,7 @@ export function AdminActivators() {
       setSortKey(key)
       setSortDir('asc')
     }
+    setPage(1)
   }
 
   const sortedActivators = useMemo(() => {
@@ -64,6 +67,13 @@ export function AdminActivators() {
       return sortDir === 'asc' ? cmp : -cmp
     })
   }, [activators, sortKey, sortDir])
+
+  const pageCount = Math.max(1, Math.ceil(sortedActivators.length / pageSize))
+  const safePage = Math.min(page, pageCount)
+  const paginated = useMemo(
+    () => sortedActivators.slice((safePage - 1) * pageSize, safePage * pageSize),
+    [sortedActivators, safePage, pageSize],
+  )
   const router = useRouter()
 
   const fetchActivators = useCallback(async () => {
@@ -316,7 +326,7 @@ export function AdminActivators() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedActivators.map(a => (
+                {paginated.map(a => (
                   <TableRow key={a.id}>
                     <TableCell>
                       <button onClick={() => openSessions(a)} className="cursor-pointer">
@@ -364,6 +374,55 @@ export function AdminActivators() {
                 ))}
               </TableBody>
             </Table>
+          )}
+
+          {sortedActivators.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t mt-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Rows per page:</span>
+                <select
+                  value={pageSize}
+                  onChange={e => { setPageSize(Number(e.target.value)); setPage(1) }}
+                  className="h-8 rounded-md border border-input bg-background px-2 py-0.5 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  {[10, 25, 50].map(n => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-1 text-sm">
+                <span className="text-muted-foreground mr-2">
+                  {(safePage - 1) * pageSize + 1}–{Math.min(safePage * pageSize, sortedActivators.length)} of {sortedActivators.length}
+                </span>
+
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => setPage(1)} disabled={safePage === 1}>«</Button>
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1}>‹</Button>
+
+                {Array.from({ length: pageCount }, (_, i) => i + 1)
+                  .filter(p => p === 1 || p === pageCount || Math.abs(p - safePage) <= 2)
+                  .reduce<(number | '…')[]>((acc, p, i, arr) => {
+                    if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('…')
+                    acc.push(p)
+                    return acc
+                  }, [])
+                  .map((p, i) =>
+                    p === '…'
+                      ? <span key={`ellipsis-${i}`} className="px-1 text-muted-foreground">…</span>
+                      : <Button
+                          key={p}
+                          variant={p === safePage ? 'default' : 'outline'}
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => setPage(p as number)}
+                          disabled={p === safePage}
+                        >{p}</Button>
+                  )}
+
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => setPage(p => Math.min(pageCount, p + 1))} disabled={safePage === pageCount}>›</Button>
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => setPage(pageCount)} disabled={safePage === pageCount}>»</Button>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
