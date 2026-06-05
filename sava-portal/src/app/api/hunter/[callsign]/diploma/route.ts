@@ -136,14 +136,15 @@ export async function GET(
       })
     }
 
+    const addrFontSize = Math.round(infoFontSize * 0.7)
     const cityZip = [qrzInfo.city, qrzInfo.zip].filter(Boolean).join(' ')
     const addrLine = [qrzInfo.addr1, cityZip, qrzInfo.country].filter(Boolean).join(', ')
     if (addrLine) {
-      const addrWidth = regularFont.widthOfTextAtSize(addrLine, infoFontSize)
+      const addrWidth = regularFont.widthOfTextAtSize(addrLine, addrFontSize)
       page.drawText(addrLine, {
         x: box.centerX - addrWidth / 2,
         y: addrLineY,
-        size: infoFontSize,
+        size: addrFontSize,
         font: regularFont,
         color: infoColor,
       })
