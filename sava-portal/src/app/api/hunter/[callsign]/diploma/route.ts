@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth'
 import { calculateHunterStats } from '@/lib/scoring'
 import type { HunterQso } from '@/lib/scoring'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import { lookupCallsign } from '@/lib/qrz'
 
 interface DiplomaBox {
   pageWidth: number
@@ -63,11 +64,17 @@ export async function GET(
   const diplomaPath = path.join(process.cwd(), '..', 'Diploma', 'Dani reke Save - DIPLOMA.pdf')
   const diplomaBytes = fs.readFileSync(diplomaPath)
 
-  const pdfDoc = await PDFDocument.load(diplomaBytes)
+  const [pdfDoc, qrzInfo] = await Promise.all([
+    PDFDocument.load(diplomaBytes),
+    lookupCallsign(upperCall),
+  ])
   const page = pdfDoc.getPage(0)
 
   const { box } = loadBox()
-  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+  const [boldFont, regularFont] = await Promise.all([
+    pdfDoc.embedFont(StandardFonts.HelveticaBold),
+    pdfDoc.embedFont(StandardFonts.Helvetica),
+  ])
 
   // Font sized to fill ~95% of box height; cap height ≈ 72% of em
   const fontSize = Math.round(box.height * 0.95)
@@ -84,6 +91,20 @@ export async function GET(
     font: boldFont,
     color: rgb(0.04, 0.18, 0.32),
   })
+
+  // Draw operator name above callsign, offset by one callsign font height
+  const operatorName = [qrzInfo?.firstName, qrzInfo?.lastName].filter(Boolean).join(' ')
+  if (operatorName) {
+    const nameFontSize = Math.round(fontSize * 0.45)
+    const nameWidth = regularFont.widthOfTextAtSize(operatorName, nameFontSize)
+    page.drawText(operatorName, {
+      x: box.centerX - nameWidth / 2,
+      y: y + fontSize,
+      size: nameFontSize,
+      font: regularFont,
+      color: rgb(0.04, 0.18, 0.32),
+    })
+  }
 
   const pdfBytes = await pdfDoc.save()
   const buffer = Buffer.from(pdfBytes)
