@@ -117,16 +117,32 @@ export async function GET(
   const infoFontSize = Math.round(fontSize * 0.45)
   const infoColor = rgb(0.04, 0.18, 0.32)
 
-  // QRZ line: 1× callsign-height + 1.5× info-font above callsign baseline
+  // QRZ info: two lines above callsign
+  // Address line baseline: 1× callsign-height + 1.5× info-font above callsign baseline
+  // Name line baseline: one info-font-height above address line
   if (qrzInfo) {
-    const name = qrzInfo.nameFmt ?? [qrzInfo.firstName, qrzInfo.lastName].filter(Boolean).join(' ')
+    const addrLineY = y + fontSize + infoFontSize * 1.5
+    const nameLineY = addrLineY + infoFontSize
+
+    const nameLine = qrzInfo.nameFmt ?? [qrzInfo.firstName, qrzInfo.lastName].filter(Boolean).join(' ')
+    if (nameLine) {
+      const nameWidth = regularFont.widthOfTextAtSize(nameLine, infoFontSize)
+      page.drawText(nameLine, {
+        x: box.centerX - nameWidth / 2,
+        y: nameLineY,
+        size: infoFontSize,
+        font: regularFont,
+        color: infoColor,
+      })
+    }
+
     const cityZip = [qrzInfo.city, qrzInfo.zip].filter(Boolean).join(' ')
-    const infoLine = [name, qrzInfo.addr1, cityZip, qrzInfo.country].filter(Boolean).join(', ')
-    if (infoLine) {
-      const infoWidth = regularFont.widthOfTextAtSize(infoLine, infoFontSize)
-      page.drawText(infoLine, {
-        x: box.centerX - infoWidth / 2,
-        y: y + fontSize + infoFontSize * 1.5,
+    const addrLine = [qrzInfo.addr1, cityZip, qrzInfo.country].filter(Boolean).join(', ')
+    if (addrLine) {
+      const addrWidth = regularFont.widthOfTextAtSize(addrLine, infoFontSize)
+      page.drawText(addrLine, {
+        x: box.centerX - addrWidth / 2,
+        y: addrLineY,
         size: infoFontSize,
         font: regularFont,
         color: infoColor,
