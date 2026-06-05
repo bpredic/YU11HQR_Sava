@@ -100,7 +100,8 @@ export async function GET(request: Request): Promise<Response> {
       </div>`
 
     const diplomaHtml = stats.qualifiesForDiploma
-      ? `<span class="diploma-yes">✓ Diploma qualified</span>`
+      ? `<span class="diploma-yes">✓ Diploma qualified</span>
+         <a href="/api/hunter/${esc(callsign)}/diploma" target="_blank" class="diploma-btn">⬇ Download Diploma</a>`
       : `<span class="diploma-no">${stats.totalPoints} / ${MIN_POINTS_FOR_DIPLOMA} pts${!stats.hasRequiredActivator ? ' · missing YT1SAVA' : ''}</span>`
 
     const qsoRows = stats.qsos.map(q => `
@@ -195,6 +196,8 @@ export async function GET(request: Request): Promise<Response> {
     .pts-label{font-size:13px;font-weight:500;color:#64748b}
     .diploma-yes{background:#16a34a;color:#fff;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
     .diploma-no{background:#f1f5f9;color:#64748b;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid #e2e8f0}
+    .diploma-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 14px;background:linear-gradient(135deg,#15803d 0%,#16a34a 100%);color:#fff;border-radius:20px;font-size:12px;font-weight:700;text-decoration:none;transition:opacity .15s}
+    .diploma-btn:hover{opacity:.85}
 
     /* ── QSO table ── */
     .qso-table{font-size:12px;background:#fff;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,.05)}
