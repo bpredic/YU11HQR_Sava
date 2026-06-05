@@ -13,14 +13,46 @@ function extractTag(xml: string, tag: string): string | null {
   return m ? m[1].trim() || null : null
 }
 
-export async function lookupCallsign(callsign: string): Promise<QrzInfo | null> {
-  const apiKey = process.env.QRZ_API_KEY
-  if (!apiKey) return null
+// In-process session cache (survives across requests within the same process lifetime)
+let cachedSession: { key: string; expiresAt: number } | null = null
+
+async function getSessionKey(): Promise<string | null> {
+  if (cachedSession && Date.now() < cachedSession.expiresAt) {
+    return cachedSession.key
+  }
+
+  const username = process.env.QRZ_USERNAME
+  const password = process.env.QRZ_PASSWORD
+  if (!username || !password) return null
 
   let xml: string
   try {
     const res = await fetch(
-      `${QRZ_BASE}?s=${encodeURIComponent(apiKey)}&callsign=${encodeURIComponent(callsign)}`,
+      `${QRZ_BASE}?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&agent=SavaPortal`,
+      { cache: 'no-store' }
+    )
+    if (!res.ok) return null
+    xml = await res.text()
+  } catch {
+    return null
+  }
+
+  const key = extractTag(xml, 'Key')
+  if (!key) return null
+
+  // QRZ sessions last 24 h; refresh after 23 h to be safe
+  cachedSession = { key, expiresAt: Date.now() + 23 * 60 * 60 * 1000 }
+  return key
+}
+
+export async function lookupCallsign(callsign: string): Promise<QrzInfo | null> {
+  const sessionKey = await getSessionKey()
+  if (!sessionKey) return null
+
+  let xml: string
+  try {
+    const res = await fetch(
+      `${QRZ_BASE}?s=${encodeURIComponent(sessionKey)}&callsign=${encodeURIComponent(callsign)}`,
       { next: { revalidate: 3600 } }
     )
     if (!res.ok) return null
@@ -29,7 +61,13 @@ export async function lookupCallsign(callsign: string): Promise<QrzInfo | null> 
     return null
   }
 
-  if (xml.includes('<Error>') || !xml.includes('<Callsign>')) return null
+  // Session may have expired mid-flight; clear cache and let caller retry next request
+  if (xml.includes('<Error>Invalid session key') || xml.includes('<Error>Session Timeout')) {
+    cachedSession = null
+    return null
+  }
+
+  if (!xml.includes('<Callsign>')) return null
 
   return {
     callsign: extractTag(xml, 'call') ?? callsign,
