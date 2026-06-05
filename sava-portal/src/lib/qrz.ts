@@ -4,8 +4,11 @@ export type QrzInfo = {
   callsign: string
   firstName: string | null
   lastName: string | null
+  nameFmt: string | null   // formatted name incl. nickname, e.g. 'Bratislav "Buca" Predić'
+  addr1: string | null     // street address
+  city: string | null      // addr2 in QRZ (city)
+  zip: string | null
   country: string | null
-  city: string | null
 }
 
 function extractTag(xml: string, tag: string): string | null {
@@ -73,7 +76,10 @@ export async function lookupCallsign(callsign: string): Promise<QrzInfo | null> 
     callsign: extractTag(xml, 'call') ?? callsign,
     firstName: extractTag(xml, 'fname'),
     lastName: extractTag(xml, 'name'),
-    country: extractTag(xml, 'country'),
+    nameFmt: extractTag(xml, 'name_fmt'),
+    addr1: extractTag(xml, 'addr1'),
     city: extractTag(xml, 'addr2'),
+    zip: extractTag(xml, 'zip'),
+    country: extractTag(xml, 'country'),
   }
 }

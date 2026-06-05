@@ -37,8 +37,11 @@ type QrzInfo = {
   callsign: string
   firstName: string | null
   lastName: string | null
-  country: string | null
+  nameFmt: string | null
+  addr1: string | null
   city: string | null
+  zip: string | null
+  country: string | null
 }
 
 function fmt(dt: string) {
@@ -112,12 +115,12 @@ export function HunterStats({ callsign, isAdmin = false }: { callsign: string; i
               </Badge>
             )}
           </div>
-          {qrzInfo && (qrzInfo.firstName || qrzInfo.lastName) && (
+          {qrzInfo && (
             <p className="text-base font-medium mt-0.5">
-              {[qrzInfo.firstName, qrzInfo.lastName].filter(Boolean).join(' ')}
-              {(qrzInfo.city || qrzInfo.country) && (
+              {qrzInfo.nameFmt ?? [qrzInfo.firstName, qrzInfo.lastName].filter(Boolean).join(' ')}
+              {(qrzInfo.addr1 || qrzInfo.city || qrzInfo.country) && (
                 <span className="text-muted-foreground font-normal text-sm">
-                  {' · '}{[qrzInfo.city, qrzInfo.country].filter(Boolean).join(', ')}
+                  {' · '}{[qrzInfo.addr1, [qrzInfo.city, qrzInfo.zip].filter(Boolean).join(' '), qrzInfo.country].filter(Boolean).join(', ')}
                 </span>
               )}
             </p>

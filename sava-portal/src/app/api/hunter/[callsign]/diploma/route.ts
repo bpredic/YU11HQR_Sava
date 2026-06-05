@@ -114,18 +114,22 @@ export async function GET(
     color: rgb(0.04, 0.18, 0.32),
   })
 
-  // Draw operator name above callsign, offset by one callsign font height
-  const operatorName = [qrzInfo?.firstName, qrzInfo?.lastName].filter(Boolean).join(' ')
-  if (operatorName) {
-    const nameFontSize = Math.round(fontSize * 0.45)
-    const nameWidth = regularFont.widthOfTextAtSize(operatorName, nameFontSize)
-    page.drawText(operatorName, {
-      x: box.centerX - nameWidth / 2,
-      y: y + fontSize + nameFontSize * 1.5,
-      size: nameFontSize,
-      font: regularFont,
-      color: rgb(0.04, 0.18, 0.32),
-    })
+  // Draw full QRZ info above callsign: "Name, Street, City ZIP, Country"
+  if (qrzInfo) {
+    const name = qrzInfo.nameFmt ?? [qrzInfo.firstName, qrzInfo.lastName].filter(Boolean).join(' ')
+    const cityZip = [qrzInfo.city, qrzInfo.zip].filter(Boolean).join(' ')
+    const infoLine = [name, qrzInfo.addr1, cityZip, qrzInfo.country].filter(Boolean).join(', ')
+    if (infoLine) {
+      const nameFontSize = Math.round(fontSize * 0.45)
+      const infoWidth = regularFont.widthOfTextAtSize(infoLine, nameFontSize)
+      page.drawText(infoLine, {
+        x: box.centerX - infoWidth / 2,
+        y: y + fontSize + nameFontSize * 1.5,
+        size: nameFontSize,
+        font: regularFont,
+        color: rgb(0.04, 0.18, 0.32),
+      })
+    }
   }
 
   // Draw rank below callsign, offset down by half callsign font height
