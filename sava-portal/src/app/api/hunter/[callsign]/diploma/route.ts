@@ -121,7 +121,7 @@ export async function GET(
     const nameWidth = regularFont.widthOfTextAtSize(operatorName, nameFontSize)
     page.drawText(operatorName, {
       x: box.centerX - nameWidth / 2,
-      y: y + fontSize,
+      y: y + fontSize + nameFontSize * 1.5,
       size: nameFontSize,
       font: regularFont,
       color: rgb(0.04, 0.18, 0.32),
