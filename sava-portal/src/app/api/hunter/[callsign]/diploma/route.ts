@@ -6,6 +6,25 @@ import { calculateHunterStats } from '@/lib/scoring'
 import type { HunterQso } from '@/lib/scoring'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 
+interface DiplomaBox {
+  pageWidth: number
+  pageHeight: number
+  box: {
+    x1: number; y1: number; x2: number; y2: number
+    centerX: number; centerY: number
+    width: number; height: number
+  }
+}
+
+let cachedBox: DiplomaBox | null = null
+
+function loadBox(): DiplomaBox {
+  if (cachedBox) return cachedBox
+  const boxPath = path.join(process.cwd(), '..', 'Diploma', 'diploma-box.json')
+  cachedBox = JSON.parse(fs.readFileSync(boxPath, 'utf-8')) as DiplomaBox
+  return cachedBox
+}
+
 export async function GET(
   _req: Request,
   ctx: RouteContext<'/api/hunter/[callsign]/diploma'>
@@ -41,26 +60,27 @@ export async function GET(
     return Response.json({ error: 'Does not qualify for diploma' }, { status: 403 })
   }
 
-  const diplomaPath = path.join(process.cwd(), '..', 'Diploma', 'SAVADiploma.png')
+  const diplomaPath = path.join(process.cwd(), '..', 'Diploma', 'Dani reke Save - DIPLOMA.pdf')
   const diplomaBytes = fs.readFileSync(diplomaPath)
 
-  const pdfDoc = await PDFDocument.create()
-  const pngImage = await pdfDoc.embedPng(diplomaBytes)
-  const { width: imgW, height: imgH } = pngImage
+  const pdfDoc = await PDFDocument.load(diplomaBytes)
+  const page = pdfDoc.getPage(0)
 
-  const page = pdfDoc.addPage([imgW, imgH])
-  page.drawImage(pngImage, { x: 0, y: 0, width: imgW, height: imgH })
-
+  const { box } = loadBox()
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
 
-  // Print callsign centered horizontally, in the middle of the decorative frame
-  const callsignSize = Math.round(imgH * 0.126)
-  const callsignWidth = boldFont.widthOfTextAtSize(upperCall, callsignSize)
+  // Font sized to fill ~95% of box height; cap height ≈ 72% of em
+  const fontSize = Math.round(box.height * 0.95)
+  const textWidth = boldFont.widthOfTextAtSize(upperCall, fontSize)
+
+  // Center horizontally in the box; center vertically by cap height, shifted 5% of font down
+  const x = box.centerX - textWidth / 2
+  const y = box.centerY - fontSize * 0.36 - fontSize * 0.05
+
   page.drawText(upperCall, {
-    x: (imgW - callsignWidth) / 2,
-    // Lowered by 10% of pre-reduction font height (0.18*0.10=0.018), then reduced by 30%
-    y: imgH * 0.487,
-    size: callsignSize,
+    x,
+    y,
+    size: fontSize,
     font: boldFont,
     color: rgb(0.04, 0.18, 0.32),
   })
