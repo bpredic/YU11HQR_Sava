@@ -114,35 +114,40 @@ export async function GET(
     color: rgb(0.04, 0.18, 0.32),
   })
 
-  // Draw full QRZ info above callsign: "Name, Street, City ZIP, Country"
+  const infoFontSize = Math.round(fontSize * 0.45)
+  const infoColor = rgb(0.04, 0.18, 0.32)
+  // QRZ line sits 1× callsign-height + 1.5× info-font above callsign baseline
+  const qrzLineY = y + fontSize + infoFontSize * 1.5
+  // Rank line sits one info-font-height above QRZ line
+  const rankLineY = qrzLineY + infoFontSize
+
+  // Draw full QRZ info: "Name, Street, City ZIP, Country"
   if (qrzInfo) {
     const name = qrzInfo.nameFmt ?? [qrzInfo.firstName, qrzInfo.lastName].filter(Boolean).join(' ')
     const cityZip = [qrzInfo.city, qrzInfo.zip].filter(Boolean).join(' ')
     const infoLine = [name, qrzInfo.addr1, cityZip, qrzInfo.country].filter(Boolean).join(', ')
     if (infoLine) {
-      const nameFontSize = Math.round(fontSize * 0.45)
-      const infoWidth = regularFont.widthOfTextAtSize(infoLine, nameFontSize)
+      const infoWidth = regularFont.widthOfTextAtSize(infoLine, infoFontSize)
       page.drawText(infoLine, {
         x: box.centerX - infoWidth / 2,
-        y: y + fontSize + nameFontSize * 1.5,
-        size: nameFontSize,
+        y: qrzLineY,
+        size: infoFontSize,
         font: regularFont,
-        color: rgb(0.04, 0.18, 0.32),
+        color: infoColor,
       })
     }
   }
 
-  // Draw rank below callsign, offset down by half callsign font height
+  // Draw rank above QRZ line, separated by one info-font height
   if (hunterRank > 0) {
     const rankText = `#${hunterRank} of ${totalHunters}`
-    const rankFontSize = Math.round(fontSize * 0.45)
-    const rankWidth = regularFont.widthOfTextAtSize(rankText, rankFontSize)
+    const rankWidth = regularFont.widthOfTextAtSize(rankText, infoFontSize)
     page.drawText(rankText, {
       x: box.centerX - rankWidth / 2,
-      y: y - fontSize * 0.5,
-      size: rankFontSize,
+      y: rankLineY,
+      size: infoFontSize,
       font: regularFont,
-      color: rgb(0.04, 0.18, 0.32),
+      color: infoColor,
     })
   }
 
