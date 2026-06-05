@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
-import { calculateHunterStats } from '@/lib/scoring'
+import { calculateHunterStats, getPointsForActivator, REQUIRED_ACTIVATOR } from '@/lib/scoring'
 import type { HunterQso } from '@/lib/scoring'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import { lookupCallsign } from '@/lib/qrz'
@@ -61,13 +61,35 @@ export async function GET(
     return Response.json({ error: 'Does not qualify for diploma' }, { status: 403 })
   }
 
+  // Compute rank in parallel with PDF load and QRZ lookup
   const diplomaPath = path.join(process.cwd(), '..', 'Diploma', 'Dani reke Save - DIPLOMA.pdf')
   const diplomaBytes = fs.readFileSync(diplomaPath)
 
-  const [pdfDoc, qrzInfo] = await Promise.all([
+  const [pdfDoc, qrzInfo, allQsos] = await Promise.all([
     PDFDocument.load(diplomaBytes),
     lookupCallsign(upperCall),
+    prisma.qso.findMany({
+      where: { isDuplicate: false },
+      select: { hunterCall: true, activatorCall: true, band: true, mode: true },
+    }),
   ])
+
+  type HunterAgg = { points: number; hasRequired: boolean; seen: Set<string> }
+  const hunterMap = new Map<string, HunterAgg>()
+  for (const q of allQsos) {
+    const hunter = q.hunterCall.toUpperCase()
+    if (!hunterMap.has(hunter)) hunterMap.set(hunter, { points: 0, hasRequired: false, seen: new Set() })
+    const entry = hunterMap.get(hunter)!
+    const slot = `${q.activatorCall}|${q.band}|${q.mode}`
+    if (!entry.seen.has(slot)) {
+      entry.seen.add(slot)
+      entry.points += getPointsForActivator(q.activatorCall)
+      if (q.activatorCall.toUpperCase() === REQUIRED_ACTIVATOR) entry.hasRequired = true
+    }
+  }
+  const sorted = [...hunterMap.entries()].sort((a, b) => b[1].points - a[1].points)
+  const hunterRank = sorted.findIndex(([call]) => call === upperCall) + 1
+  const totalHunters = sorted.length
   const page = pdfDoc.getPage(0)
 
   const { box } = loadBox()
@@ -101,6 +123,20 @@ export async function GET(
       x: box.centerX - nameWidth / 2,
       y: y + fontSize,
       size: nameFontSize,
+      font: regularFont,
+      color: rgb(0.04, 0.18, 0.32),
+    })
+  }
+
+  // Draw rank below callsign, offset down by half callsign font height
+  if (hunterRank > 0) {
+    const rankText = `#${hunterRank} of ${totalHunters}`
+    const rankFontSize = Math.round(fontSize * 0.45)
+    const rankWidth = regularFont.widthOfTextAtSize(rankText, rankFontSize)
+    page.drawText(rankText, {
+      x: box.centerX - rankWidth / 2,
+      y: y - fontSize * 0.5,
+      size: rankFontSize,
       font: regularFont,
       color: rgb(0.04, 0.18, 0.32),
     })
