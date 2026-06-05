@@ -116,12 +116,8 @@ export async function GET(
 
   const infoFontSize = Math.round(fontSize * 0.45)
   const infoColor = rgb(0.04, 0.18, 0.32)
-  // QRZ line sits 1× callsign-height + 1.5× info-font above callsign baseline
-  const qrzLineY = y + fontSize + infoFontSize * 1.5
-  // Rank line sits one info-font-height above QRZ line
-  const rankLineY = qrzLineY + infoFontSize
 
-  // Draw full QRZ info: "Name, Street, City ZIP, Country"
+  // QRZ line: 1× callsign-height + 1.5× info-font above callsign baseline
   if (qrzInfo) {
     const name = qrzInfo.nameFmt ?? [qrzInfo.firstName, qrzInfo.lastName].filter(Boolean).join(' ')
     const cityZip = [qrzInfo.city, qrzInfo.zip].filter(Boolean).join(' ')
@@ -130,7 +126,7 @@ export async function GET(
       const infoWidth = regularFont.widthOfTextAtSize(infoLine, infoFontSize)
       page.drawText(infoLine, {
         x: box.centerX - infoWidth / 2,
-        y: qrzLineY,
+        y: y + fontSize + infoFontSize * 1.5,
         size: infoFontSize,
         font: regularFont,
         color: infoColor,
@@ -138,15 +134,27 @@ export async function GET(
     }
   }
 
-  // Draw rank above QRZ line, separated by one info-font height
+  // Rank: below callsign, offset down by one callsign font height; bold with shadow
   if (hunterRank > 0) {
     const rankText = `#${hunterRank} of ${totalHunters}`
-    const rankWidth = regularFont.widthOfTextAtSize(rankText, infoFontSize)
+    const rankWidth = boldFont.widthOfTextAtSize(rankText, infoFontSize)
+    const rankX = box.centerX - rankWidth / 2
+    const rankY = y - fontSize
+    // Shadow: offset 2pt right and 2pt down, semi-transparent dark
     page.drawText(rankText, {
-      x: box.centerX - rankWidth / 2,
-      y: rankLineY,
+      x: rankX + 2,
+      y: rankY - 2,
       size: infoFontSize,
-      font: regularFont,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+      opacity: 0.3,
+    })
+    // Main text
+    page.drawText(rankText, {
+      x: rankX,
+      y: rankY,
+      size: infoFontSize,
+      font: boldFont,
       color: infoColor,
     })
   }
