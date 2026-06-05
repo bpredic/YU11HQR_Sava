@@ -33,6 +33,14 @@ type Stats = {
   qualifiesForDiploma: boolean
 }
 
+type QrzInfo = {
+  callsign: string
+  firstName: string | null
+  lastName: string | null
+  country: string | null
+  city: string | null
+}
+
 function fmt(dt: string) {
   return new Date(dt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC'
 }
@@ -40,6 +48,7 @@ function fmt(dt: string) {
 export function HunterStats({ callsign, isAdmin = false }: { callsign: string; isAdmin?: boolean }) {
   const [stats, setStats] = useState<Stats | null>(null)
   const [rank, setRank] = useState<{ position: number; total: number } | null>(null)
+  const [qrzInfo, setQrzInfo] = useState<QrzInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
   const [page, setPage] = useState(1)
@@ -50,12 +59,14 @@ export function HunterStats({ callsign, isAdmin = false }: { callsign: string; i
     Promise.all([
       fetch(`/api/hunter/${encodeURIComponent(callsign)}`).then(r => r.json()),
       fetch('/api/hunter/rankings').then(r => r.json()),
-    ]).then(([statsData, rankingsData]) => {
+      fetch(`/api/qrz/${encodeURIComponent(callsign)}`).then(r => r.ok ? r.json() : null).catch(() => null),
+    ]).then(([statsData, rankingsData, qrzData]) => {
       setStats(statsData)
       if (Array.isArray(rankingsData)) {
         const entry = rankingsData.find((e: { callsign: string }) => e.callsign === callsign.toUpperCase())
         if (entry) setRank({ position: entry.rank, total: rankingsData.length })
       }
+      if (qrzData) setQrzInfo(qrzData)
     }).catch(() => {}).finally(() => setLoading(false))
   }, [callsign])
 
@@ -101,6 +112,16 @@ export function HunterStats({ callsign, isAdmin = false }: { callsign: string; i
               </Badge>
             )}
           </div>
+          {qrzInfo && (qrzInfo.firstName || qrzInfo.lastName) && (
+            <p className="text-base font-medium mt-0.5">
+              {[qrzInfo.firstName, qrzInfo.lastName].filter(Boolean).join(' ')}
+              {(qrzInfo.city || qrzInfo.country) && (
+                <span className="text-muted-foreground font-normal text-sm">
+                  {' · '}{[qrzInfo.city, qrzInfo.country].filter(Boolean).join(', ')}
+                </span>
+              )}
+            </p>
+          )}
           <p className="text-muted-foreground text-sm mt-1">{t.hunter.statsSubtitle}</p>
         </div>
         <div className="flex items-center gap-2">
