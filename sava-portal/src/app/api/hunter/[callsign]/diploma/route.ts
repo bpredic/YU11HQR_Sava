@@ -102,9 +102,9 @@ export async function GET(
   const fontSize = Math.round(box.height * 0.95)
   const textWidth = boldFont.widthOfTextAtSize(upperCall, fontSize)
 
-  // Center horizontally in the box; center vertically by cap height, shifted 5% of font down
+  // Center horizontally in the box; center vertically by cap height, shifted 5% down then 10% up
   const x = box.centerX - textWidth / 2
-  const y = box.centerY - fontSize * 0.36 - fontSize * 0.05
+  const y = box.centerY - fontSize * 0.36 - fontSize * 0.05 + fontSize * 0.10
 
   page.drawText(upperCall, {
     x,
