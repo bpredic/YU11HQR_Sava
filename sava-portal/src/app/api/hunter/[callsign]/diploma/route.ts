@@ -104,7 +104,7 @@ export async function GET(
 
   // Center horizontally in the box; center vertically by cap height, shifted 5% down then 10% up
   const x = box.centerX - textWidth / 2
-  const y = box.centerY - fontSize * 0.36 - fontSize * 0.05 + fontSize * 0.10
+  const y = box.centerY - fontSize * 0.36 - fontSize * 0.05 + fontSize * 0.05
 
   page.drawText(upperCall, {
     x,
