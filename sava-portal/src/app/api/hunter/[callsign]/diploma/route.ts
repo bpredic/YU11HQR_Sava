@@ -115,6 +115,7 @@ export async function GET(
   })
 
   const infoFontSize = Math.round(fontSize * 0.45)
+  const addrFontSize = Math.round(infoFontSize * 0.7)
   const infoColor = rgb(0.04, 0.18, 0.32)
 
   // QRZ info: two lines above callsign
@@ -136,7 +137,6 @@ export async function GET(
       })
     }
 
-    const addrFontSize = Math.round(infoFontSize * 0.7)
     const cityZip = [qrzInfo.city, qrzInfo.zip].filter(Boolean).join(' ')
     const addrLine = [qrzInfo.addr1, cityZip, qrzInfo.country].filter(Boolean).join(', ')
     if (addrLine) {
@@ -175,6 +175,18 @@ export async function GET(
       color: infoColor,
     })
   }
+
+  // Date below rank (or below callsign if no rank)
+  const dateText = '01-07.06.2026.'
+  const dateWidth = regularFont.widthOfTextAtSize(dateText, addrFontSize)
+  const dateY = y - fontSize - infoFontSize * 1.5
+  page.drawText(dateText, {
+    x: box.centerX - dateWidth / 2,
+    y: dateY,
+    size: addrFontSize,
+    font: regularFont,
+    color: infoColor,
+  })
 
   const pdfBytes = await pdfDoc.save()
   const buffer = Buffer.from(pdfBytes)
