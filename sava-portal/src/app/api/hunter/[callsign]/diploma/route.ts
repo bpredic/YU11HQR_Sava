@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth'
 import { calculateHunterStats, getPointsForActivator, REQUIRED_ACTIVATOR } from '@/lib/scoring'
 import type { HunterQso } from '@/lib/scoring'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import fontkit from '@pdf-lib/fontkit'
 import { lookupCallsign } from '@/lib/qrz'
 
 interface DiplomaBox {
@@ -66,7 +67,7 @@ export async function GET(
   const diplomaBytes = fs.readFileSync(diplomaPath)
 
   const [pdfDoc, qrzInfo, allQsos] = await Promise.all([
-    PDFDocument.load(diplomaBytes),
+    PDFDocument.load(diplomaBytes).then(doc => { doc.registerFontkit(fontkit); return doc }),
     lookupCallsign(upperCall),
     prisma.qso.findMany({
       where: { isDuplicate: false },
