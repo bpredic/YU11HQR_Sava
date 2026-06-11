@@ -93,9 +93,11 @@ export async function GET(
   const page = pdfDoc.getPage(0)
 
   const { box } = loadBox()
+  const geistPath = path.join(process.cwd(), 'node_modules', 'next', 'dist', 'compiled', '@vercel', 'og', 'Geist-Regular.ttf')
+  const geistBytes = fs.readFileSync(geistPath)
   const [boldFont, regularFont] = await Promise.all([
     pdfDoc.embedFont(StandardFonts.HelveticaBold),
-    pdfDoc.embedFont(StandardFonts.Helvetica),
+    pdfDoc.embedFont(geistBytes),
   ])
 
   // Font sized to fill ~95% of box height; cap height ≈ 72% of em
